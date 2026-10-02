@@ -1,0 +1,30 @@
+% Standalone TikZ figure: a single perceptron / neuron.
+% \input from the chapter's raw-LaTeX block; not rendered by Obsidian.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    input/.style={circle, draw, minimum size=8mm},
+    biasinput/.style={circle, draw=mondrianblue, minimum size=8mm},
+    sum/.style={circle, draw, fill=mondrianyellow!30, minimum size=11mm},
+    act/.style={rectangle, draw, rounded corners, fill=mondrianblue!15, minimum size=11mm},
+    >=stealth
+]
+    \node[input] (x1) at (0,3) {$x_1$};
+    \node[input] (x2) at (0,1.6) {$x_2$};
+    \node at (0,0.7) {$\vdots$};
+    \node[input] (xd) at (0,-0.4) {$x_d$};
+    \node[biasinput] (b) at (0,-1.8) {$1$};
+
+    \node[sum] (s) at (3.4,1) {$\displaystyle\sum$};
+    \node[act]  (g) at (6.4,1) {$g(\cdot)$};
+
+    \draw[->] (x1) -- node[above, sloped] {\small $w_1$} (s);
+    \draw[->] (x2) -- node[above, sloped] {\small $w_2$} (s);
+    \draw[->] (xd) -- node[above, sloped] {\small $w_d$} (s);
+    \draw[->] (b)  -- node[below, sloped] {\small $b$} (s);
+    \draw[->] (s) -- node[above] {$z$} (g);
+    \draw[->] (g) -- ++(2.0,0) node[right] {$h$};
+\end{tikzpicture}
+\caption{A single neuron (perceptron). The inputs $x_1,\ldots,x_d$ are combined through the weights $w_1,\ldots,w_d$ and a bias $b$ into the linear activation $z = w^\top x + b$, which the activation function $g$ maps to the output $h = g(z)$.}
+\label{fig:perceptron}
+\end{figure}

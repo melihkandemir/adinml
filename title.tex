@@ -1,0 +1,38 @@
+\documentclass[main.tex]{subfiles}
+
+
+
+
+\begin{document}
+% Title page content
+\begin{titlepage}
+\begin{flushleft}
+
+% Title in a custom font style and size
+\textbf{\fontfamily{qhv}\selectfont\Huge \BigTitle}
+
+% Draw a line 4pt high
+\par\noindent{\color{mondrianred}\rule{\textwidth}{4pt}}\\
+
+% Subtitle with shaded box
+\begin{tikzpicture}
+\fill[mondrianblue]
+    (0,0) rectangle (\textwidth, 1.5);
+\node[white] at (0.5\textwidth, 0.75) {\textbf{\large \textit{\LittleTitle}}};
+\end{tikzpicture}
+
+% Author
+\begin{flushright}
+\Large Melih Kandemir \\
+\large University of Southern Denmark \\
+\normalsize \texttt{kandemir@imada.sdu.dk}
+\end{flushright}
+
+\vspace{\fill}
+
+\end{flushleft}
+\end{titlepage}
+
+\restoregeometry
+
+\end{document}
