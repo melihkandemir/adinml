@@ -13,12 +13,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "exercises/exercise3.md",
+                "file": "exercises/exercise1.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "exercise3"
+              "title": "exercise1"
             }
           }
         ]
@@ -190,15 +190,15 @@
   },
   "active": "709ef321d6d46d9b",
   "lastOpenFiles": [
+    "exercises/answer4.md",
+    "exercises/answer1.md",
     "exercises/exercise4.md",
+    "exercises/exercise3.md",
     "exercises/answer2.md",
     "exercises/exercise2.md",
-    "exercises/answer4.md",
     "exercises/answer3.md",
-    "exercises/exercise3.md",
     "exercises/exercise1.md",
     "exams/sample-exam1.md",
-    "exercises/answer1.md",
     "exercises",
     "exams/sample-exam2.md",
     "todo.md",
