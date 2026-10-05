@@ -324,11 +324,7 @@ g1 = th.linspace(X_knn[:, 1].min() - pad, X_knn[:, 1].max() + pad, 200)
 gg0, gg1 = th.meshgrid(g0, g1, indexing='xy')
 mesh = th.stack([gg0.reshape(-1), gg1.reshape(-1)], dim=1)
 
-for weights in ["uniform", "distance"]:
-    # weights=uniform: All points in each neighborhood are weighted equally
-    # weights=distance: weight points by the inverse of their distance
-    zz = knn_predict(mesh, X_knn, y_knn, k=1, weights=weights).reshape(gg0.shape)
-
+def plot_regions(zz, k, weights):
     fig, ax = plt.subplots()
     ax.pcolormesh(gg0, gg1, zz, cmap=cmap_light, shading="auto")
     for c in range(3):
@@ -337,11 +333,26 @@ for weights in ["uniform", "distance"]:
                    edgecolor="black", label=names[c])
     ax.set_xlabel("sepal length (cm)"); ax.set_ylabel("sepal width (cm)")
     ax.legend()
-    ax.set_title("3-Class classification (k = 1, weights = '%s')" % weights)
+    ax.set_title("kNN decision regions (k = %d, weights = '%s')" % (k, weights))
+
+# With k = 1 the two weighting schemes coincide -- a single neighbor takes
+# the whole vote whatever its weight -- and the decision regions are
+# exactly the Voronoi cells of the training points.
+plot_regions(knn_predict(mesh, X_knn, y_knn, k=1, weights="uniform").reshape(gg0.shape),
+             k=1, weights="uniform")
+
+# The weightings disagree only once several neighbors share the vote:
+# with uniform weights each of the k neighbors counts equally, with
+# distance weights a close neighbor can outvote several farther ones.
+for weights in ["uniform", "distance"]:
+    plot_regions(knn_predict(mesh, X_knn, y_knn, k=3, weights=weights).reshape(gg0.shape),
+                 k=3, weights=weights)
 
 plt.show()
 ```
 
-![1-nearest-neighbor decision regions on the Iris data with uniform neighbor weighting.](fig/generated/03_Classification_4.png)
+![1-nearest-neighbor decision regions on the Iris data: the decision regions are the Voronoi cells of the training points.](fig/generated/03_Classification_4.png)
 
-![1-nearest-neighbor decision regions on the Iris data with distance-based neighbor weighting.](fig/generated/03_Classification_5.png)
+![3-nearest-neighbor decision regions with uniform neighbor weighting.](fig/generated/03_Classification_5.png)
+
+![3-nearest-neighbor decision regions with distance-based neighbor weighting, to be compared against the uniform-weighting figure above.](fig/generated/03_Classification_6.png)
