@@ -45,15 +45,31 @@ $$\mathcal{L}_{CE}(w) = -\sum_{i=1}^m \log g(w^\top x_i)^{y_i} (1-g(w^\top x_i))
 
 ## Extension to multi-class classification
 
-Let us quickly extend the above formulation to multi-class classification. Assume we have $C$ classes, that is, we aim to fit an $h$ to a data set $S=\{(x_i,y_i)|i \in [m]\}$ that consists of $(x,y)$ pairs with $y \in \{1,\ldots, C\}$. We will then need to model the class probabilities of $C$ different classes, $P_1, \ldots, P_C$, from $C$ per-class scores $u_c := w_c^\top x_i$. The binary construction generalizes directly: the single log odds $\log\frac{P_i}{1-P_i}$ compares one class against one other, so with $C$ classes we let each score $u_c$ play the role of the log odds of class $c$ against a common baseline, and normalization then takes care of the rest:
+Let us quickly extend the above formulation to multi-class classification. Assume we have $C$ classes, that is, we aim to fit an $h$ to a data set $S=\{(x_i,y_i)|i \in [m]\}$ that consists of $(x,y)$ pairs with $y \in \{1,\ldots, C\}$. We will then need to model the class probabilities of $C$ different classes, $P_1, \ldots, P_C$, from $C$ per-class scores $u_c := w_c^\top x_i$. The binary construction generalizes directly: the log odds $\log\frac{P}{1-P}$ measures how probable a class is relative to *one specific other class*, so with $C$ classes we pick one of them — call it class $j\in[C]$ — as the **baseline**, and let each score $u_c$ measure class $c$ against that baseline:
 
-$$\log \dfrac{P_c}{\text{baseline}} = u_c + \mathrm{const} = w_c^\top x_i + \mathrm{const}.$$
+$$\log \dfrac{P_c}{P_j} = u_c = w_c^\top x_i, \qquad c \neq j .$$
 
-Solving for $P_c$ and assuring that the class probabilities sum up to one yields:
+Let us solve for the class probabilities step by step.
 
-$$\mathrm{softmax}(u)_c = \dfrac{e^{u_c}}{\sum_{c'=1}^C e^{u_{c'}}},$$
+*Step 1: exponentiate each equation.* For every class $c\neq j$,
 
-which is called the **softmax** function. The related loss function is then:
+$$\dfrac{P_c}{P_j} = e^{u_c} \quad\Longrightarrow\quad P_c = P_j\, e^{u_c}.$$
+
+The baseline's own equation is trivially $\log\frac{P_j}{P_j}=0$, so class $j$ has no score of its own — it is the reference against which the others are measured, and its "exponent" is $e^0=1$.
+
+*Step 2: determine $P_j$ from normalization.* The probabilities must sum to one. Substituting $P_c = P_je^{u_c}$ for every $c\neq j$:
+
+$$1 = \sum_{c=1}^{C} P_c = P_j + \sum_{c\neq j} P_j\,e^{u_c} = P_j\Big(1 + \sum_{c\neq j} e^{u_c}\Big) = P_j \sum_{c=1}^{C} e^{u_c},$$
+
+where the last equality uses $1=e^{u_j}$ with $u_j:=0$. Hence
+
+$$P_j = \dfrac{1}{\sum_{c'=1}^{C} e^{u_{c'}}}.$$
+
+*Step 3: back-substitute.* Combining $P_c = P_je^{u_c}$ with the expression for $P_j$ gives every class probability at once:
+
+$$P_c = \dfrac{e^{u_c}}{\sum_{c'=1}^{C} e^{u_{c'}}} =: \mathrm{softmax}(u)_c ,$$
+
+which is called the **softmax** function. Note that the choice of the baseline class has effectively disappeared from the result: picking a different class $j'$ as the baseline shifts every score by a constant ($u_c' = u_c - u_{j'}$, leaving the ratios $e^{u_c}/e^{u_{c'}}$ untouched), so the softmax depends only on the *differences* between the scores — with $C=2$ it reduces to the sigmoid of exactly that difference, $P_{\bar\jmath} = g(u_{\bar\jmath}-u_j)$ for the one non-baseline class $\bar\jmath$. For the very same reason we may drop the bookkeeping convention $u_j=0$ altogether and simply give **every** class its own score $u_c = w_c^\top x_i$, one weight vector per class: a common shift of all scores changes no probability, so the redundancy is harmless, and this is the convention used in the loss below. The related loss function is then:
 
 $$\mathcal{L}_{CE}(W) = -\sum_{i=1}^m \log \mathrm{softmax}(u_i)_{y_i} = \sum_{i=1}^m \Big \{ -w_{y_i}^\top x_i + \log \Big ( \sum_{c=1}^C e^{w_c^\top x_i} \Big )  \Big \},$$
 
