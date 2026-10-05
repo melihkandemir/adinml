@@ -326,7 +326,10 @@ mesh = th.stack([gg0.reshape(-1), gg1.reshape(-1)], dim=1)
 
 def plot_regions(zz, k, weights):
     fig, ax = plt.subplots()
-    ax.pcolormesh(gg0, gg1, zz, cmap=cmap_light, shading="auto")
+    # vmin/vmax are pinned to the class range: with auto-scaling, a class absent
+    # from the predictions (e.g. a setosa point that never wins a 3-vote) would
+    # shift the color mapping and paint the remaining classes in the wrong colors.
+    ax.pcolormesh(gg0, gg1, zz, cmap=cmap_light, shading="auto", vmin=0, vmax=2)
     for c in range(3):
         pts = X_knn[y_knn == c]
         ax.scatter(pts[:, 0], pts[:, 1], c=cmap_bold[c],

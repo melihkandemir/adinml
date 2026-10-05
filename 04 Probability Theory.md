@@ -92,7 +92,11 @@ P_X(A) = \int_A p_X(x) \, d\mu_{\text{Leb}}(x), \\
 \end{gathered}$$
 For $k=1$ this is the familiar $P_X(A) = \int_A p_X(x)\,dx$. Not every random variable admits a density (some are discrete, some are neither), but every case relevant to this course is either discrete or admits one.
 
-**Example (three coin tosses).** Toss a fair coin three times; write $H$ for heads and $T$ for tails. The sample space is $\Omega = \{HHH, HHT, HTH, HTT, THH, THT, TTH, TTT\}$, and since the coin is fair and the tosses are independent, $P(\omega) = \big(\tfrac12\big)^3 = \tfrac18$ for every $\omega \in \Omega$. Let $X: \Omega \to \{0,1,2,3\}$ count the number of heads. Then $X$ is a (measurable, since $\Omega$ is finite and $\mathcal{F}=2^\Omega$) random variable with pmf
+**Example (three coin tosses).** Toss a fair coin three times; write $H$ for heads and $T$ for tails. The sample space is
+
+$$\Omega = \{HHH, HHT, HTH, HTT, THH, THT, TTH, TTT\} ,$$
+
+and since the coin is fair and the tosses are independent, $P(\omega) = \big(\tfrac12\big)^3 = \tfrac18$ for every $\omega \in \Omega$. Let $X: \Omega \to \{0,1,2,3\}$ count the number of heads. Then $X$ is a (measurable, since $\Omega$ is finite and $\mathcal{F}=2^\Omega$) random variable with pmf
 
 1. $P(X=0) = P(\{TTT\}) = \frac{1}{8}$,
 2. $P(X=1) = P(\{TTH, THT, HTT\}) = \frac{3}{8}$,
