@@ -21,7 +21,7 @@ and compiled to PDF via LaTeX. Maintained by Melih Kandemir
 | 09 | Kernel Methods |
 | 10 | Ensemble Methods |
 
-Also includes sample exams (`exams/`) and generated figures (`fig/`).
+Also includes generated figures (`fig/`).
 
 ## Building the PDF
 
