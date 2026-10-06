@@ -40,6 +40,15 @@ if [ "${1:-}" = "--regen" ]; then
   FORCE_FIGURES=(--force)
 fi
 
+# Chapter sources are the numbered top-level notes (00 Notation, 01 ..., 10 ...).
+# Anything else at the root (todo.md, external-review.md, ...) is internal and
+# must not enter the book. Sorted with a leading zero so 05b follows 05a/05.
+CHAPTERS=()
+for f in [0-9]*.md; do
+  [ -e "$f" ] || continue
+  CHAPTERS+=("$f")
+done
+
 OUT_PDF="$SCRIPT_DIR/Machine_Learning.pdf"
 STATIC_FILES=(main.tex amd.sty theorems.tex syntax_highlighting.tex title.tex preface.tex contents.tex)
 
@@ -51,14 +60,22 @@ BUILD_DIR="$(mktemp -d)"
 MD_BACKUP_DIR="$(mktemp -d)"
 trap 'rm -rf "$BUILD_DIR" "$MD_BACKUP_DIR"' EXIT
 
-mapfile -t CHAPTERS < <(find . -maxdepth 1 -name "*.md" ! -name "todo.md" ! -name ".*" -printf "%f\n" | sort -V)
+if [ "${#CHAPTERS[@]}" -eq 0 ]; then
+  echo "Error: no chapter notes ([0-9]*.md) found in $SCRIPT_DIR" >&2
+  exit 1
+fi
+
 for chapter in "${CHAPTERS[@]}"; do
   cp "$chapter" "$MD_BACKUP_DIR/$chapter"
 done
 
 echo "=== Step 1: Generating Figures from Code Blocks ==="
 if [ -f "generate_figures.py" ]; then
-  python3 generate_figures.py "${FORCE_FIGURES[@]}"
+  if [ "${#FORCE_FIGURES[@]}" -gt 0 ]; then
+    python3 generate_figures.py --force
+  else
+    python3 generate_figures.py
+  fi
 else
   echo "WARNING: generate_figures.py not found! Skipping figure generation." >&2
 fi

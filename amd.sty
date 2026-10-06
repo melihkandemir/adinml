@@ -36,6 +36,20 @@
 \RequirePackage{subfiles}
 \RequirePackage{longtable}
 \RequirePackage{booktabs}
+% Pandoc's LaTeX writer emits \def\LTcaptype{none} for caption-less tables
+% (so they don't step the table counter). \LTcaptype is normally provided by
+% the caption package; define a fallback so the book compiles without it.
+\providecommand{\LTcaptype}{table}
+% Pandoc >= 3.11 wraps \includegraphics in \pandocbounded{...} to box images
+% into the text block; the command is defined in pandoc's own LaTeX template,
+% not here. Scale the image down to the line width if it is wider.
+\providecommand{\pandocbounded}[1]{%
+  \sbox\@tempboxa{#1}%
+  \ifdim\wd\@tempboxa>\hsize
+    \resizebox{\hsize}{!}{\usebox\@tempboxa}%
+  \else
+    \usebox\@tempboxa
+  \fi}
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 

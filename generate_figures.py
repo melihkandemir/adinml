@@ -231,9 +231,9 @@ def main():
     ap.add_argument("--force", action="store_true", help="regenerate even if already resolved")
     args = ap.parse_args()
 
-    targets = args.files or sorted(
-        f for f in os.listdir(ROOT) if f.endswith(".md") and f != "todo.md"
-    )
+    # Numbered chapter notes only (00, 01, ..., 10); internal working
+    # documents (todo.md, external-review.md, ...) are not part of the book.
+    targets = args.files or sorted(f for f in os.listdir(ROOT) if re.match(r"[0-9]", f) and f.endswith(".md"))
 
     for fn in targets:
         path = fn if os.path.isabs(fn) else os.path.join(ROOT, fn)

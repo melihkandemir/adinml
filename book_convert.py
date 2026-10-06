@@ -66,7 +66,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
-EXCLUDE = {"todo.md"}
+EXCLUDE = set()
 # Front-matter file rendered as an unnumbered chapter before Chapter 1,
 # rather than as a numbered chapter in the main glob (see main()).
 NOTATION_FILE = "00 Notation.md"
@@ -143,7 +143,13 @@ def run_pandoc(markdown_text: str) -> str:
     # Pandoc always ties "e.g."/"i.e." to what follows with a non-breaking
     # space; when that's a long inline formula, the whole unbreakable run
     # can overflow the page margin. A breakable space before math is safe.
-    return ABBREV_TIE_RE.sub(lambda m: m.group(1) + " ", result.stdout)
+    latex = ABBREV_TIE_RE.sub(lambda m: m.group(1) + " ", result.stdout)
+    # Pandoc emits \def\LTcaptype{none} before caption-less longtables.
+    # Together with the caption/subcaption packages (ltcaption) that \def
+    # makes \begin{longtable} fail with "No counter 'none' defined", so
+    # strip it: without a \caption the counter is never stepped anyway.
+    latex = re.sub(r'\\def\\LTcaptype\{none\}[^\n]*\n', '', latex)
+    return latex
 
 
 def apply_inline_citations(text: str) -> str:
@@ -487,7 +493,10 @@ def main():
     if args.md_file:
         md_files = [ROOT / args.md_file]
     else:
-        md_files = sorted(p for p in ROOT.glob("*.md") if p.name not in EXCLUDE)
+        # Numbered chapter notes only (00, 01, ..., 10); other root-level
+        # .md files (todo.md, external-review.md, ...) are internal working
+        # documents that must not enter the book.
+        md_files = sorted(p for p in ROOT.glob("[0-9]*.md"))
 
     out_names = []
     for md_path in md_files:
