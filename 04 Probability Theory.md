@@ -313,7 +313,12 @@ $$\mathbb{E}\big[X^k\big] \leq \mathbb{E}\big[|X|^k\big] = \mathbb{E}\big[|X|^{k
 $$\mathbb{E}\big[e^{sX}\big] \leq \exp\Big(\frac{\sigma^2}{b^2}\big(e^{sb} - 1 - sb\big)\Big).$$
 
 **Proof.** Expand the moment generating function into its power series and apply Lemma 4.2 to each term:
-$$\mathbb{E}\big[e^{sX}\big] = 1 + \sum_{k=2}^{\infty}\frac{s^k\,\mathbb{E}[X^k]}{k!} \leq 1 + \sum_{k=2}^{\infty}\frac{s^k\,b^{k-2}\sigma^2}{k!} = 1 + \frac{\sigma^2}{b^2}\sum_{k=2}^{\infty}\frac{(sb)^k}{k!} = 1 + \frac{\sigma^2}{b^2}\big(e^{sb}-1-sb\big) \leq \exp\Big(\frac{\sigma^2}{b^2}\big(e^{sb}-1-sb\big)\Big),$$
+$$\begin{aligned}
+\mathbb{E}\big[e^{sX}\big] = 1 + \sum_{k=2}^{\infty}\frac{s^k\,\mathbb{E}[X^k]}{k!} &\leq 1 + \sum_{k=2}^{\infty}\frac{s^k\,b^{k-2}\sigma^2}{k!}\\
+&= 1 + \frac{\sigma^2}{b^2}\sum_{k=2}^{\infty}\frac{(sb)^k}{k!}\\
+&= 1 + \frac{\sigma^2}{b^2}\big(e^{sb}-1-sb\big)\\
+&\leq \exp\Big(\frac{\sigma^2}{b^2}\big(e^{sb}-1-sb\big)\Big),
+\end{aligned}$$
 where the last step uses $1+u \leq e^u$ $\square$
 
 The contrast with Hoeffding's lemma (Lemma 4.1) is instructive: that lemma charges the full range, $\mathbb{E}[e^{sX}] \leq e^{s^2(b-a)^2/8}$, while Bennett's bound keeps the *variance* $\sigma^2$ in front and replaces the quadratic-in-$s$ charge by the exact Taylor remainder $e^{sb}-1-sb$ of a single summand hitting its range bound $b$. For small $sb$ this remainder is $\approx \tfrac12(sb)^2$, recovering a Hoeffding-like quadratic with the variance in front; for large $sb$ it grows only like $e^{sb}/b^2 \cdot \sigma^2$, which is where the range eventually has to be paid for.
@@ -322,14 +327,22 @@ The contrast with Hoeffding's lemma (Lemma 4.1) is instructive: that lemma charg
 $$P\Big(\frac{1}{m}\sum_{i=1}^m X_i \geq \epsilon\Big) \leq \exp\Big(-\frac{m^2\epsilon^2}{2\sum_{i=1}^m\sigma_i^2 + \tfrac{2}{3}mb\epsilon}\Big).$$
 
 **Proof.** For any $s>0$, Markov's inequality (Theorem 4.1) applied to the increasing transformation $u \mapsto e^{su}$ of the sum, and independence, give
-$$P\Big(\sum_{i=1}^m X_i \geq m\epsilon\Big) \leq e^{-sm\epsilon}\prod_{i=1}^m\mathbb{E}\big[e^{sX_i}\big] \leq \exp\Big(-sm\epsilon + \frac{V}{b^2}\big(e^{sb}-1-sb\big)\Big) =: e^{h(s)},$$
+$$\begin{aligned}
+P\Big(\sum_{i=1}^m X_i \geq m\epsilon\Big) \leq e^{-sm\epsilon}\prod_{i=1}^m\mathbb{E}\big[e^{sX_i}\big] &\leq \exp\Big(-sm\epsilon + \frac{V}{b^2}\big(e^{sb}-1-sb\big)\Big)\\
+&=: e^{h(s)},
+\end{aligned}$$
 where the second inequality applies Lemma 4.3 to each $X_i$ (valid since $P(X_i \leq b)=1$ follows from $P(|X_i|\leq b)=1$) and $V := \sum_i \sigma_i^2$. The bound holds for every $s>0$, so it remains to minimize $h(s) = -sm\epsilon + \frac{V}{b^2}(e^{sb}-1-sb)$ over $s>0$. Since $h''(s) = Ve^{sb} > 0$, $h$ is strictly convex, $h(0)=0$, and $h'(0) = -m\epsilon < 0$, so the infimum over $s>0$ is attained at the unique stationary point $s^* > 0$ solving
 $$h'(s^*) = -m\epsilon + \frac{V}{b}\big(e^{s^*b}-1\big) = 0 \iff e^{s^*b} = 1+\frac{m\epsilon b}{V}.$$
 Define $u := \frac{m\epsilon b}{V} > 0$, so $s^*b = \log(1+u)$, $e^{s^*b}-1 = u$, and $m\epsilon = Vu/b$. Substituting into $h$,
-$$h(s^*) = -\frac{Vu}{b}\cdot\frac{\log(1+u)}{u} + \frac{V}{b^2}\big(u - \log(1+u)\big)\cdot\frac{b}{b} = -\frac{V}{b^2}\Big[(1+u)\log(1+u) - u\Big] = -\frac{V}{b^2}\,\psi(u),$$
+$$\begin{aligned}
+h(s^*) = -\frac{Vu}{b}\cdot\frac{\log(1+u)}{u} + \frac{V}{b^2}\big(u - \log(1+u)\big) &= -\frac{V}{b^2}\Big[(1+u)\log(1+u) - u\Big]\\
+&= -\frac{V}{b^2}\,\psi(u),
+\end{aligned}$$
 where $\psi(u) := (1+u)\log(1+u)-u$. The elementary inequality $\psi(u) \geq \frac{u^2/2}{1+u/3}$ for all $u \geq 0$ (Exercise) therefore gives
 $$h(s^*) \leq -\frac{V}{b^2}\cdot\frac{u^2}{2+\tfrac{2}{3}u} = -\frac{m^2\epsilon^2}{2V + \tfrac{2}{3}m\epsilon b},$$
-where the last step substitutes $u = m\epsilon b/V$ and clears denominators: $\frac{V}{b^2}\cdot\frac{u^2}{2+\frac{2}{3}u} = \frac{V}{b^2}\cdot\frac{m^2\epsilon^2b^2/V^2}{2+\frac{2}{3}\frac{m\epsilon b}{V}} = \frac{m^2\epsilon^2}{2V+\frac{2}{3}m\epsilon b}$. Since $e^{h(s)} \leq e^{h(s^*)}$ for every $s>0$, the claim follows $\square$
+where the last step substitutes $u = m\epsilon b/V$ and clears denominators:
+$$\frac{V}{b^2}\cdot\frac{u^2}{2+\tfrac{2}{3}u} = \frac{V}{b^2}\cdot\frac{m^2\epsilon^2b^2/V^2}{2+\tfrac{2}{3}\frac{m\epsilon b}{V}} = \frac{m^2\epsilon^2}{2V+\tfrac{2}{3}m\epsilon b}.$$
+Since $e^{h(s)} \leq e^{h(s^*)}$ for every $s>0$, the claim follows $\square$
 
 **Exercise.** Prove that $\psi(u) := (1+u)\log(1+u) - u \geq \frac{u^2/2}{1+u/3}$ for all $u \geq 0$, as follows. Let $f(u) := \frac{u^2/2}{1+u/3}$ and show that $\psi(0)=f(0)=0$ and $\psi'(0)=f'(0)=0$, and that the difference of the second derivatives is
 $$\psi''(u)-f''(u) = \frac{u^2(9+u)}{(1+u)(3+u)^3} \geq 0,$$
