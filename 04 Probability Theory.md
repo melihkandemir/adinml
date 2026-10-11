@@ -298,3 +298,48 @@ Two consequences matter directly for what follows in Chapter 5:
 
 * **Effect of the hypothesis class.** If each estimator $k$ corresponds to the training loss of a distinct hypothesis $h_k$ in a finite hypothesis class $\mathcal{H} = \{h_1,\ldots,h_K\}$, the bound degrades only logarithmically in $K = |\mathcal{H}|$ — a much larger hypothesis class costs comparatively little in confidence, but every additional hypothesis we simultaneously monitor must be paid for somewhere, and it is paid for here, inside the square root. This is the seed of the finite-hypothesis-class generalization bound proved in Chapter 5.
 * **Effect of loss scale.** If different hypotheses (or different loss functions) produce losses on different scales $[a_k,b_k]$, the *per-estimator* range $(b_k-a_k)$ enters the bound directly and linearly. A hypothesis whose loss can swing across a wide range is intrinsically harder to certify than one confined to a narrow range, even before we ask anything about the hypothesis class's size or structure — boundedness of the *loss*, not just of the sample, is doing real work.
+
+## Bernstein's inequality
+
+Chebyshev's inequality and Hoeffding's inequality bound the deviation of an empirical average using two different properties of the summands: Chebyshev pays with the variance, Hoeffding with the range. That these are not the same price matters. A Bernoulli($p$) variable with a small $p$, say $p=10^{-6}$, lies in $[0,1]$, so Hoeffding treats it as a full-width $[0,1]$ variable, but its variance $p(1-p) \approx 10^{-6}$ is six orders of magnitude smaller than the range would suggest: the variable is almost always (nearly) $0$. The inequality due to [Bernstein (1924)](https://zbmath.org/?q=an%3AJFM%2050.0342.01)<!-- cite: bernstein1924modification | article | author={Bernstein, Sergei N.}; title={On a Modification of Chebyshev's Inequality and of the Error Formula of Laplace}; journal={Annals of the Scientific Institute of Mathematics and Mechanics, Tomsk State University}; year={1924} --> pays a variance-dependent price instead: the exponent is $\frac{m^2\epsilon^2}{2\sum_i\sigma_i^2 + \frac{2}{3}mb\epsilon}$, a variance term with a range-dependent correction that takes over only in the large-deviation regime. The proof runs the Chernoff trick of Theorem 4.4 once more, replacing Hoeffding's lemma (Lemma 4.1) by a moment bound that keeps track of the variance and charges the range only for the high-order part of the exponential series.
+
+**Lemma 4.2 (Moment growth under boundedness).** Let $X$ be a random variable with $\mathbb{E}[X]=0$, $\mathrm{Var}[X]=\sigma^2$, and $P(|X| \leq b)=1$ for some $b>0$. Then for every integer $k \geq 2$,
+$$\mathbb{E}\big[X^k\big] \leq b^{k-2}\sigma^2.$$
+
+**Proof.** Since $k \geq 2$ and $|X| \leq b$ almost surely, we have $|X|^{k-2} \leq b^{k-2}$ almost surely, and
+$$\mathbb{E}\big[X^k\big] \leq \mathbb{E}\big[|X|^k\big] = \mathbb{E}\big[|X|^{k-2}X^2\big] \leq b^{k-2}\,\mathbb{E}\big[X^2\big] = b^{k-2}\sigma^2. \ \square$$
+
+**Lemma 4.3 (Bennett's mgf bound).** Let $X$ be a random variable with $\mathbb{E}[X]=0$, $\mathrm{Var}[X]=\sigma^2$, and $P(X \leq b)=1$ for some $b>0$. Then for every $s>0$,
+$$\mathbb{E}\big[e^{sX}\big] \leq \exp\Big(\frac{\sigma^2}{b^2}\big(e^{sb} - 1 - sb\big)\Big).$$
+
+**Proof.** Expand the moment generating function into its power series and apply Lemma 4.2 to each term:
+$$\mathbb{E}\big[e^{sX}\big] = 1 + \sum_{k=2}^{\infty}\frac{s^k\,\mathbb{E}[X^k]}{k!} \leq 1 + \sum_{k=2}^{\infty}\frac{s^k\,b^{k-2}\sigma^2}{k!} = 1 + \frac{\sigma^2}{b^2}\sum_{k=2}^{\infty}\frac{(sb)^k}{k!} = 1 + \frac{\sigma^2}{b^2}\big(e^{sb}-1-sb\big) \leq \exp\Big(\frac{\sigma^2}{b^2}\big(e^{sb}-1-sb\big)\Big),$$
+where the last step uses $1+u \leq e^u$ $\square$
+
+The contrast with Hoeffding's lemma (Lemma 4.1) is instructive: that lemma charges the full range, $\mathbb{E}[e^{sX}] \leq e^{s^2(b-a)^2/8}$, while Bennett's bound keeps the *variance* $\sigma^2$ in front and replaces the quadratic-in-$s$ charge by the exact Taylor remainder $e^{sb}-1-sb$ of a single summand hitting its range bound $b$. For small $sb$ this remainder is $\approx \tfrac12(sb)^2$, recovering a Hoeffding-like quadratic with the variance in front; for large $sb$ it grows only like $e^{sb}/b^2 \cdot \sigma^2$, which is where the range eventually has to be paid for.
+
+**Theorem 4.6 (Bernstein's inequality).** Let $X_1,\ldots,X_m$ be independent random variables with $\mathbb{E}[X_i]=0$, $\mathrm{Var}[X_i]=\sigma_i^2$, and $P(|X_i| \leq b)=1$ for a common $b>0$. Then for any $\epsilon>0$,
+$$P\Big(\frac{1}{m}\sum_{i=1}^m X_i \geq \epsilon\Big) \leq \exp\Big(-\frac{m^2\epsilon^2}{2\sum_{i=1}^m\sigma_i^2 + \tfrac{2}{3}mb\epsilon}\Big).$$
+
+**Proof.** For any $s>0$, Markov's inequality (Theorem 4.1) applied to the increasing transformation $u \mapsto e^{su}$ of the sum, and independence, give
+$$P\Big(\sum_{i=1}^m X_i \geq m\epsilon\Big) \leq e^{-sm\epsilon}\prod_{i=1}^m\mathbb{E}\big[e^{sX_i}\big] \leq \exp\Big(-sm\epsilon + \frac{V}{b^2}\big(e^{sb}-1-sb\big)\Big) =: e^{h(s)},$$
+where the second inequality applies Lemma 4.3 to each $X_i$ (valid since $P(X_i \leq b)=1$ follows from $P(|X_i|\leq b)=1$) and $V := \sum_i \sigma_i^2$. The bound holds for every $s>0$, so it remains to minimize $h(s) = -sm\epsilon + \frac{V}{b^2}(e^{sb}-1-sb)$ over $s>0$. Since $h''(s) = Ve^{sb} > 0$, $h$ is strictly convex, $h(0)=0$, and $h'(0) = -m\epsilon < 0$, so the infimum over $s>0$ is attained at the unique stationary point $s^* > 0$ solving
+$$h'(s^*) = -m\epsilon + \frac{V}{b}\big(e^{s^*b}-1\big) = 0 \iff e^{s^*b} = 1+\frac{m\epsilon b}{V}.$$
+Define $u := \frac{m\epsilon b}{V} > 0$, so $s^*b = \log(1+u)$, $e^{s^*b}-1 = u$, and $m\epsilon = Vu/b$. Substituting into $h$,
+$$h(s^*) = -\frac{Vu}{b}\cdot\frac{\log(1+u)}{u} + \frac{V}{b^2}\big(u - \log(1+u)\big)\cdot\frac{b}{b} = -\frac{V}{b^2}\Big[(1+u)\log(1+u) - u\Big] = -\frac{V}{b^2}\,\psi(u),$$
+where $\psi(u) := (1+u)\log(1+u)-u$. The elementary inequality $\psi(u) \geq \frac{u^2/2}{1+u/3}$ for all $u \geq 0$ (Exercise) therefore gives
+$$h(s^*) \leq -\frac{V}{b^2}\cdot\frac{u^2}{2+\tfrac{2}{3}u} = -\frac{m^2\epsilon^2}{2V + \tfrac{2}{3}m\epsilon b},$$
+where the last step substitutes $u = m\epsilon b/V$ and clears denominators: $\frac{V}{b^2}\cdot\frac{u^2}{2+\frac{2}{3}u} = \frac{V}{b^2}\cdot\frac{m^2\epsilon^2b^2/V^2}{2+\frac{2}{3}\frac{m\epsilon b}{V}} = \frac{m^2\epsilon^2}{2V+\frac{2}{3}m\epsilon b}$. Since $e^{h(s)} \leq e^{h(s^*)}$ for every $s>0$, the claim follows $\square$
+
+**Exercise.** Prove that $\psi(u) := (1+u)\log(1+u) - u \geq \frac{u^2/2}{1+u/3}$ for all $u \geq 0$, as follows. Let $f(u) := \frac{u^2/2}{1+u/3}$ and show that $\psi(0)=f(0)=0$ and $\psi'(0)=f'(0)=0$, and that the difference of the second derivatives is
+$$\psi''(u)-f''(u) = \frac{u^2(9+u)}{(1+u)(3+u)^3} \geq 0,$$
+using $(3+u)^3-27(1+u) = u^2(9+u)$. Conclude by two integrations from $0$ to $u$.
+
+Applying Theorem 4.6 to $-X_1,\ldots,-X_m$ (which satisfy the same hypotheses: $|-X_i| = |X_i| \leq b$ and $\mathrm{Var}[-X_i]=\sigma_i^2$) bounds the opposite tail identically, and adding the two gives the two-sided version with an extra factor of $2$.
+
+**The two regimes.** Specialize to the i.i.d. case $\sigma_i^2 \equiv \sigma^2$ and read the bound as a function of the deviation size $\epsilon$:
+
+* **Small-deviation (Gaussian) regime, $\epsilon \lesssim \sigma^2/b$.** The variance term $2m\sigma^2$ dominates the denominator and the bound reads $e^{-m\epsilon^2/2\sigma^2}$ — a Gaussian tail with the *true* variance in the denominator. This is where Bernstein beats Hoeffding: for variables confined to $[-b,b]$, Hoeffding's exponent is $\frac{m\epsilon^2}{2b^2}$, so the ratio of the exponents is $b^2/\sigma^2$ — six orders of magnitude in the Bernoulli($10^{-6}$) example above. Since the deviations that matter for generalization bounds are typically of order $\sqrt{\sigma^2/m}$ — exactly the boundary of this regime — the Gaussian regime is the one that actually gets used.
+* **Large-deviation (Poissonian) regime, $\epsilon \gg \sigma^2/b$.** The correction term $\tfrac{2}{3}mb\epsilon$ dominates the denominator and the bound reads $\exp(-\tfrac{3}{2}\,\frac{m\epsilon}{b})$ — linear in the deviation, the shape of a Poisson tail. No variance information can help this far out: the extreme tail of a bounded variable is controlled by how far it can reach, not by how much it typically fluctuates.
+
+The variance-adaptivity of the Gaussian regime is what makes Bernstein's inequality the standard tool behind **empirical-Bernstein generalization bounds**, importance-weighted risk estimation, and the confidence bonuses of bandit algorithms — wherever the noise is heteroscedastic or the range is a pessimistic proxy for the variance.
