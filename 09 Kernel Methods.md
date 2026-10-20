@@ -114,7 +114,7 @@ $$v^\top K v = \sum_{i=1}^m\sum_{j=1}^m v_i v_j\, \phi(x_i)^\top \phi(x_j) = \Bi
 
 since the double sum is exactly the squared norm of the single vector $\sum_i v_i \phi(x_i)$. Symmetry of $K$ is immediate from symmetry of the inner product $\square$
 
-The converse — that positive semi-definiteness *suffices*, i.e. that some feature map always exists — is the substantial half of the theorem, and it is proved constructively in the section on reproducing kernel Hilbert spaces below (Theorem 9.2), where the feature map is built as $\phi(x) := k(x,\cdot)$ and the feature space as a space of functions on $\mathcal{X}$. Everything in that construction is carried out here except one analytic step — completing a pre-Hilbert space — which we state but do not perform. Until then, the "only if" direction just proved, together with the composition rules below, is already enough to certify every kernel we actually employ.
+The converse — that positive semi-definiteness *suffices*, i.e. that some feature map always exists — is the substantial half of the theorem, and it is proved constructively in the section on reproducing kernel Hilbert spaces below (Theorem 9.2), where the feature map is built as $\phi(x) := k(x,\cdot)$ and the feature space as a space of functions on $\mathcal{X}$. Until then, the "only if" direction just proved, together with the composition rules below, is already enough to certify every kernel we actually employ.
 
 The most commonly used kernel functions are:
 
@@ -123,15 +123,19 @@ The most commonly used kernel functions are:
   - **Radial Basis Function (RBF) Kernel:** $k(x,y) = \exp(-\frac{\| x-y \|^2}{2\sigma^2})$
   - **Sigmoid Kernel:** $k(x,y) = \tanh\left( \gamma  x^\top y  + c \right)$
 
+The first three are valid kernels for all parameter values ($c \geq 0$ for the polynomial kernel); this is proved below. The sigmoid kernel, borrowed from neural networks, is **not** positive semi-definite in general: for $c < 0$, $k(0,0) = \tanh(c) < 0$, so already the $1\times1$ Gram matrix of the single point $x = 0$ violates the condition of Theorem 9.1.
+
 There also exist kernels that compute the similarity of a pair of graphs, strings, or other complex objects. The nice property of the kernel functions is that one can compute these similarities directly, without needing to define suitable feature spaces for these object types.
 
 One can imagine that it is not straightforward to devise a function that satisfies this condition. However, there are certain rules that allow us to construct new valid kernel functions from existing ones. These rules are called **kernel composition rules**.
 
-**Proposition 9.1 (Kernel composition rules).** Let $k_1, k_2$ be valid kernels, $a \in \mathbb{R}^+$ a constant, and $B$ a positive semi-definite matrix. Then each of the following is a valid kernel:
+**Proposition 9.1 (Kernel composition rules).** Let $k_1, k_2, k_3, \ldots$ be valid kernels, $a \in \mathbb{R}^+$ a constant, $B$ a positive semi-definite matrix, and $q: \mathcal{X}\to\mathbb{R}$ any function. Then each of the following is a valid kernel:
   - $k(x,x') = k_1(x,x') + k_2(x,x')$
   - $k(x,x') = a \cdot k_1(x,x')$
   - $k(x,x') = k_1(x,x') \cdot k_2(x,x')$
   - $k(x,x') = x^\top B  x'$
+  - $k(x,x') = q(x)\,k_1(x,x')\,q(x')$
+  - $k(x,x') = \lim_{n\to\infty} k_n(x,x')$, whenever the limit exists for all $x,x'$.
 
 ***Proof.*** By Theorem 9.1 it suffices to verify that each rule produces a positive semi-definite Gram matrix. Write $K_1, K_2$ for the Gram matrices of $k_1,k_2$ on an arbitrary sample, both positive semi-definite by hypothesis.
 
@@ -142,9 +146,15 @@ One can imagine that it is not straightforward to devise a function that satisfi
 *Product.* The Gram matrix of the product kernel is the entrywise (Hadamard) product $K_1 \odot K_2$, and the **Schur product theorem** states that the Hadamard product of two positive semi-definite matrices is positive semi-definite. Directly: write $K_2 = \sum_{r} \lambda_r u_r u_r^\top$ with $\lambda_r \geq 0$ (spectral decomposition of a symmetric positive semi-definite matrix). Then for any $v$,
 $$v^\top (K_1 \odot K_2) v = \sum_{i,j} v_i v_j (K_1)_{ij} \sum_r \lambda_r u_{r,i}u_{r,j} = \sum_r \lambda_r \underbrace{\big(v \odot u_r\big)^\top K_1 \big(v \odot u_r\big)}_{\geq\,0} \;\geq\; 0 .$$
 
-*Bilinear form.* Since $B$ is symmetric positive semi-definite, it has a square root $B^{1/2}$ with $B = B^{1/2}B^{1/2}$, so $x^\top B x' = (B^{1/2}x)^\top (B^{1/2}x')$ exhibits the feature map $\phi(x) := B^{1/2}x$ directly $\square$
+*Bilinear form.* Since $B$ is symmetric positive semi-definite, it has a square root $B^{1/2}$ with $B = B^{1/2}B^{1/2}$, so $x^\top B x' = (B^{1/2}x)^\top (B^{1/2}x')$ exhibits the feature map $\phi(x) := B^{1/2}x$ directly.
 
-These four rules already certify most kernels used in practice. The polynomial kernel $(x^\top x' + c)^d$, for instance, is built from the linear kernel by $d$ applications of the product rule together with the sum rule and positive scaling (expanding the binomial), and the RBF kernel is obtained as a limit of such combinations.
+*Rescaling.* The Gram matrix is $DK_1D$ with $D := \mathrm{diag}(q(x_1),\ldots,q(x_m))$, and $v^\top DK_1Dv = (Dv)^\top K_1(Dv) \geq 0$.
+
+*Limits.* The Gram matrices converge entrywise, so $v^\top Kv = \lim_n v^\top K_nv \geq 0$ $\square$
+
+These rules certify the kernels listed above. The constant kernel $k \equiv 1$ is valid (its Gram matrix $\mathbf{1}\mathbf{1}^\top$ is positive semi-definite), and the polynomial kernel $(x^\top x' + c)^d$ with $c \geq 0$ is built from it and the linear kernel by $d$ applications of the product rule together with the sum rule and positive scaling (expanding the binomial). For the RBF kernel, expand the square in the exponent:
+$$\exp\Big(-\frac{\|x-x'\|^2}{2\sigma^2}\Big) = q(x)\,\exp\Big(\frac{x^\top x'}{\sigma^2}\Big)\,q(x'), \qquad q(x) := \exp\Big(-\frac{\|x\|^2}{2\sigma^2}\Big),$$
+and $\exp(x^\top x'/\sigma^2) = \lim_{N\to\infty}\sum_{n=0}^N \frac{(x^\top x')^n}{\sigma^{2n}\,n!}$ is a limit of sums of positively scaled powers of the linear kernel. The rescaling and limit rules make it a valid kernel.
 
 
 
@@ -168,7 +178,7 @@ so $\phi(x) := k(x,\cdot)$ is a feature map for $k$ — the **canonical feature 
 
 **Theorem 9.2 (Moore-Aronszajn).** Every positive semi-definite kernel $k$ has exactly one RKHS.
 
-***Proof (construction; completeness omitted).*** Start from the linear span of the kernel sections,
+***Proof.*** *Step 1: a pre-Hilbert space.* Start from the linear span of the kernel sections,
 
 $$\mathcal{V} := \Big\{ f = \sum_{i=1}^n a_i\, k(x_i,\cdot) \;:\; n \in \mathbb{N},\ a_i \in \mathbb{R},\ x_i \in \mathcal{X} \Big\},$$
 
@@ -192,9 +202,17 @@ $$|f(x)| = \big|\langle f, k(x,\cdot)\rangle_{\mathcal{V}}\big| \;\leq\; \|f\|_{
 
 If $\|f\|_{\mathcal{V}}=0$ then $f(x)=0$ for every $x$, i.e. $f$ is the zero *function*. So $\langle\cdot,\cdot\rangle_{\mathcal{V}}$ is a genuine inner product on $\mathcal{V}$, and $(\mathcal{V}, \langle\cdot,\cdot\rangle_{\mathcal{V}})$ is a pre-Hilbert space satisfying both conditions of Definition 9.1.
 
-The remaining step is to **complete** $\mathcal{V}$ — adjoin the limits of its Cauchy sequences — and to check that the completion still consists of functions on $\mathcal{X}$ and still reproduces $k$. Bound (9.2) is what makes this work: convergence in $\|\cdot\|_{\mathcal{V}}$ forces pointwise convergence, so a Cauchy sequence of functions has a well-defined pointwise limit to attach to. Carrying this out, together with the uniqueness claim, is a standard exercise in functional analysis that we do not reproduce here $\square$
+*Step 2: completion.* By (9.2), a sequence $(f_n)$ that is Cauchy in $\|\cdot\|_{\mathcal{V}}$ is Cauchy pointwise, $|f_n(x) - f_k(x)| \leq \|f_n - f_k\|_{\mathcal{V}}\sqrt{k(x,x)}$, so it has a pointwise limit. Let $\mathcal{H}_k$ be the set of all functions on $\mathcal{X}$ that arise as pointwise limits of Cauchy sequences in $\mathcal{V}$. It contains $\mathcal{V}$ (constant sequences). The construction rests on one observation:
 
-Two consequences are worth recording immediately. First, the construction **completes the proof of Mercer's theorem**: the converse direction we deferred in Theorem 9.1 is exactly the statement that a positive semi-definite $k$ admits a feature map, and $\phi(x) := k(x,\cdot)$ into $\mathcal{H}_k$ is one. Second, every element of $\mathcal{H}_k$ is a limit of finite kernel expansions $\sum_i a_i k(x_i,\cdot)$ — so the hypothesis class generated by a kernel is precisely the closure of the set of weighted similarity scores to a finite set of points. This is the formal content of the informal description of kernel methods as "predicting by weighted similarity to remembered examples".
+> *If $(f_n)$ is Cauchy in $\mathcal{V}$ and $f_n \to 0$ pointwise, then $\|f_n\|_{\mathcal{V}} \to 0$.* Indeed, a Cauchy sequence is bounded, $\|f_n\|_{\mathcal{V}} \leq C$. Given $\epsilon > 0$ pick $N$ with $\|f_n - f_N\|_{\mathcal{V}} \leq \epsilon$ for $n \geq N$, and write $f_N = \sum_i a_i k(x_i,\cdot)$. Then $\|f_n\|_{\mathcal{V}}^2 = \langle f_n, f_n - f_N\rangle_{\mathcal{V}} + \langle f_n, f_N\rangle_{\mathcal{V}} \leq C\epsilon + \big|\sum_i a_i f_n(x_i)\big|$ by Cauchy-Schwarz and the reproducing property, and the finite sum tends to $0$. So $\limsup_n\|f_n\|_{\mathcal{V}}^2 \leq C\epsilon$ for every $\epsilon$.
+
+For $f,g \in \mathcal{H}_k$ with approximating sequences $(f_n), (g_n)$ define $\langle f,g\rangle_{\mathcal{H}_k} := \lim_n\langle f_n,g_n\rangle_{\mathcal{V}}$. The limit exists, since $|\langle f_n,g_n\rangle - \langle f_k,g_k\rangle| \leq \|f_n - f_k\|\,\|g_n\| + \|f_k\|\,\|g_n - g_k\|$ makes the sequence Cauchy in $\mathbb{R}$. It does not depend on the chosen sequences: if $(f_n')$ also converges pointwise to $f$, then $(f_n - f_n')$ is Cauchy and tends to $0$ pointwise, hence to $0$ in norm by the observation, and the same estimate shows the limits agree. The form is bilinear, symmetric and non-negative, inheriting these from $\langle\cdot,\cdot\rangle_{\mathcal{V}}$, and it extends $\langle\cdot,\cdot\rangle_{\mathcal{V}}$. It is definite: if $\langle f,f\rangle_{\mathcal{H}_k} = 0$ then $\|f_n\|_{\mathcal{V}} \to 0$, so $f(x) = \lim_n f_n(x) = 0$ for every $x$ by (9.2).
+
+*Step 3: reproducing property and completeness.* For $f \in \mathcal{H}_k$, $\langle f, k(x,\cdot)\rangle_{\mathcal{H}_k} = \lim_n\langle f_n, k(x,\cdot)\rangle_{\mathcal{V}} = \lim_n f_n(x) = f(x)$. Moreover $\|f - f_n\|_{\mathcal{H}_k}^2 = \lim_k\|f_k - f_n\|_{\mathcal{V}}^2 \leq \sup_{k \geq n}\|f_k - f_n\|_{\mathcal{V}}^2 \to 0$, so $\mathcal{V}$ is dense in $\mathcal{H}_k$. Now let $(h_j)$ be Cauchy in $\mathcal{H}_k$, and choose $f_j \in \mathcal{V}$ with $\|h_j - f_j\|_{\mathcal{H}_k} \leq 1/j$. Then $(f_j)$ is Cauchy in $\mathcal{V}$; its pointwise limit $h$ lies in $\mathcal{H}_k$, with $\|h - f_j\|_{\mathcal{H}_k} \to 0$ by the density argument, hence $\|h - h_j\|_{\mathcal{H}_k} \leq \|h - f_j\|_{\mathcal{H}_k} + 1/j \to 0$. So $\mathcal{H}_k$ is a Hilbert space satisfying Definition 9.1.
+
+*Step 4: uniqueness.* Let $\mathcal{G}$ be any RKHS for $k$. By the reproducing property and bilinearity, $\mathcal{G}$ contains $\mathcal{V}$ with the same inner product. A Cauchy sequence $(f_n)$ in $\mathcal{V}$ converges in the complete space $\mathcal{G}$, and convergence in $\mathcal{G}$ implies pointwise convergence (by (9.2), valid in any RKHS), so its limit in $\mathcal{G}$ is its pointwise limit. Hence $\mathcal{H}_k \subseteq \mathcal{G}$, with the same inner product, and $\mathcal{H}_k$ is a closed subspace of $\mathcal{G}$, being complete. If it were a proper subspace, the projection theorem would give a non-zero $g \in \mathcal{G}$ orthogonal to $\mathcal{H}_k$, and then $g(x) = \langle g, k(x,\cdot)\rangle_{\mathcal{G}} = 0$ for every $x$, a contradiction. So $\mathcal{G} = \mathcal{H}_k$ $\square$
+
+Two consequences are worth recording immediately. First, the construction **completes the proof of Mercer's theorem**: the converse direction we deferred in Theorem 9.1 is exactly the statement that a positive semi-definite $k$ admits a feature map, and $\phi(x) := k(x,\cdot)$ into $\mathcal{H}_k$ is one. Second, every element of $\mathcal{H}_k$ is a limit, in norm and pointwise, of finite kernel expansions $\sum_i a_i k(x_i,\cdot)$ — so the hypothesis class generated by a kernel is precisely the closure of the set of weighted similarity scores to a finite set of points. This is the formal content of the informal description of kernel methods as "predicting by weighted similarity to remembered examples".
 
 ---
 
@@ -208,7 +226,7 @@ $$\mathcal{H}_B \;=\; \big\{ f \in \mathcal{H}_k : \|f\|_{\mathcal{H}_k} \leq B 
 
 is a class of uniformly bounded functions, whatever the dimension of the feature space happens to be. That is precisely the norm-constrained, dimension-free regime that Theorem 5a.4 was built for.
 
-**What the norm measures.** For the RBF kernel the RKHS norm penalizes wiggliness: one can show that $\|f\|^2_{\mathcal{H}_k}$ equals a weighted integral of $|\widehat f(\omega)|^2$ against $e^{\sigma^2\|\omega\|^2/2}$ over the frequency domain, so high-frequency components are charged exponentially, the more so the larger $\sigma$ is. This makes the bandwidth $\sigma$ and the regularization coefficient $\lambda$ two different dials on the same quantity — $\sigma$ decides *which* functions are expensive, $\lambda$ decides *how much* we are willing to pay — and explains, before any experiment, why the fits below vary so sharply with $\sigma$.
+**What the norm measures.** For the RBF kernel the RKHS norm penalizes wiggliness: one can show that $\|f\|^2_{\mathcal{H}_k}$ equals a weighted integral of $|\widehat f(\omega)|^2$ against $e^{\sigma^2\|\omega\|^2/2}$ over the frequency domain, so high-frequency components are charged exponentially, the more so the larger $\sigma$ is (see [Girosi, Jones & Poggio (1995)](https://doi.org/10.1162/neco.1995.7.2.219)<!-- cite: girosi1995regularization | article | author={Girosi, Federico and Jones, Michael and Poggio, Tomaso}; title={Regularization Theory and Neural Networks Architectures}; journal={Neural Computation}; year={1995}; volume={7}; number={2}; pages={219--269} --> for this Fourier-domain description of the norm). This makes the bandwidth $\sigma$ and the regularization coefficient $\lambda$ two different dials on the same quantity — $\sigma$ decides *which* functions are expensive, $\lambda$ decides *how much* we are willing to pay — and explains, before any experiment, why the fits below vary so sharply with $\sigma$.
 
 ---
 
@@ -269,7 +287,7 @@ $$\min_{a \in \mathbb{R}^m}\ \|y - Ka\|_2^2 + \lambda\, a^\top K a,$$
 
 whose gradient is $-2Ky + 2KKa + 2\lambda K a = 2K\big[(K+\lambda I)a - y\big]$. Setting it to zero is solved by $(K+\lambda I)a = y$, and $K + \lambda I \succ 0$ for $\lambda>0$ makes that system uniquely solvable $\square$
 
-This is exactly the solution the dual derivation of the previous section arrived at, and exactly what `precompute_a` computes in the implementation below — but obtained without ever mentioning $\phi$, $\Phi$ or $w$. The dual derivation had to *discover* that $w$ lies in the span of the training features, by inspecting the stationarity condition of one particular objective; the representer theorem says it in advance, for every objective of that shape. The practical readings are:
+This is exactly the solution the dual derivation of the following section arrives at, and exactly what `precompute_a` computes in the implementation below — but obtained without ever mentioning $\phi$, $\Phi$ or $w$. The dual derivation has to *discover* that $w$ lies in the span of the training features, by inspecting the stationarity condition of one particular objective; the representer theorem says it in advance, for every objective of that shape. The practical readings are:
 
 * **Cost.** Training is $O(m^3)$ (one linear solve) and prediction $O(m)$ per query, *independent of the dimension of the feature space* — including when that dimension is infinite, as for the RBF kernel. What is traded away is a cost that grows with the sample size instead, which is the precise sense in which kernel methods are "non-parametric": the model that must be stored is the training set itself.
 * **Where the guarantee comes from.** The trained predictor satisfies $\|f^*\|_{\mathcal{H}_k}^2 = a^\top K a \leq \|y\|_2^2/\lambda$ by comparing the objective at $f^*$ against the candidate $f = 0$, so $\lambda$ directly caps the RKHS norm — hence, via Proposition 9.2 and Theorem 5a.4, the Rademacher complexity of the class the solution came from. The section on generalization below makes this quantitative.
@@ -452,11 +470,38 @@ $$
 
 using Jensen's inequality and $\mathbb{E}[\sigma_i\sigma_{i'}]=0$ for $i \neq i'$ (exactly as in the proof of Theorem 5a.4), where $K$ is the Gram matrix of Mercer's theorem. This **trace bound** is computable directly from the kernel matrix — never requiring $\phi$ to be written down — and is always at least as tight as the generic $BR/\sqrt m$ bound, since $\mathrm{tr}(K) = \sum_i k(x_i,x_i) \leq mR^2$ whenever $k(x,x)\leq R^2$ uniformly.
 
-This connects directly to the regularization coefficient $\lambda$ already introduced for ridge regression in Chapter 2 and reused for kernel regression above. At the optimum $w^*$ of the ridge objective $\mathcal{L}(w) = \|y-\Phi w\|_2^2 + \lambda\|w\|_2^2$, optimality against the trivial candidate $w=0$ gives $\lambda\|w^*\|_2^2 \leq \mathcal{L}(w^*) \leq \mathcal{L}(0) = \|y\|_2^2$, hence
+This connects directly to the regularization coefficient $\lambda$. Write kernel ridge regression in the averaged form
+$$\widehat f_S := \arg\min_{f\in\mathcal{H}_k}\ \mathcal{J}_S(f), \qquad \mathcal{J}_S(f) := \frac1m\sum_{i=1}^m\big(y_i - f(x_i)\big)^2 + \lambda\|f\|^2_{\mathcal{H}_k},$$
+which is the objective of Corollary 9.1 with its $\lambda$ replaced by $m\lambda$, and assume $|y| \leq Y$ and $k(x,x) \leq R^2$. Comparing the minimizer with $f = 0$ gives $\lambda\|\widehat f_S\|^2_{\mathcal{H}_k} \leq \mathcal{J}_S(\widehat f_S) \leq \mathcal{J}_S(0) \leq Y^2$, so
+$$\|\widehat f_S\|_{\mathcal{H}_k} \;\leq\; \frac{Y}{\sqrt\lambda} =: B(\lambda)$$
+for **every** sample. The solution therefore always comes from the class $\mathcal{H}_{B(\lambda)}$, which is fixed before the data are seen, so Theorem 5a.2 applies to it, and the trace bound gives $\widehat{\mathfrak{R}}_S(\mathcal{H}_{B(\lambda)}) \leq \frac{YR}{\sqrt{\lambda m}}$. This makes quantitative what Chapter 2 promised only qualitatively when it introduced ridge regression as an instance of Structural Risk Minimization: increasing $\lambda$ shrinks the class the solution can come from, and with it the complexity term of the generalization bound.
 
-$$\|w^*\|_2 \leq \frac{\|y\|_2}{\sqrt{\lambda}} =: B(\lambda).$$
+The same regularization also makes the algorithm stable, which gives a faster rate in expectation:
 
-Plugging $B(\lambda)$ into the trace bound above makes quantitative exactly what Chapter 2 promised only qualitatively when it introduced ridge regression as an instance of Structural Risk Minimization: increasing $\lambda$ shrinks $B(\lambda)$, which shrinks $\widehat{\mathfrak{R}}_S(\mathcal{H}_{B(\lambda)})$, which — through Theorem 5a.2 — tightens the generalization guarantee. The regularization coefficient is not merely a heuristic device against overfitting; it is a direct dial on the Rademacher complexity of the space the ERM solution is allowed to come from.
+**Corollary 9.2 (Kernel ridge regression is uniformly stable).** Under the assumptions above, with the squared loss $\phi(f,(x,y)) = (y - f(x))^2$,
+$$\mathbb{E}_S\big[R(\widehat f_S)\big] \;\leq\; \mathbb{E}_S\big[\widehat{R}_S(\widehat f_S)\big] + \frac{4R^2Y^2\big(1 + R/\sqrt\lambda\big)^2}{\lambda m}.$$
+
+***Proof.*** Since every minimizer lies in the closed convex ball $\Omega := \{f : \|f\|_{\mathcal{H}_k} \leq Y/\sqrt\lambda\}$, $\widehat f_S$ is also the minimizer of $\mathcal{J}_S$ over $\Omega$. By the reproducing property $f(x) = \langle f, k(x,\cdot)\rangle_{\mathcal{H}_k}$, so the loss is a convex function of $f$ with gradient $-2(y - f(x))\,k(x,\cdot)$, whose norm on $\Omega$ is at most $2(Y + RY/\sqrt\lambda)R =: G$ by Proposition 9.2; the loss is therefore $G$-Lipschitz on $\Omega$. The regularizer $\lambda\|f\|^2_{\mathcal{H}_k}$ is $2\lambda$-strongly convex. Theorem 5a.11, whose proof holds verbatim in a Hilbert space, makes the algorithm $\frac{2G^2}{2\lambda m}$-uniformly stable, and Theorem 5a.10 concludes $\square$
+
+The Rademacher route gives a gap of order $1/\sqrt{\lambda m}$ with high probability; the stability route gives order $1/(\lambda m)$ in expectation. Both say that a larger $\lambda$ buys a smaller gap, and the price is paid in the training error.
+
+How small can the training error, and more importantly the approximation error, become as $\lambda \to 0$, i.e. as the norm budget $B$ grows? For the RBF kernel the answer is: as small as for any continuous predictor.
+
+**Theorem 9.4 (The RBF kernel is universal).** Let $k$ be the RBF kernel with bandwidth $\sigma > 0$ on $\mathbb{R}^d$ and $\mathcal{X} \subset \mathbb{R}^d$ compact. For every continuous $g: \mathcal{X} \to \mathbb{R}$ and every $\epsilon > 0$ there is a finite kernel expansion $f = \sum_{i=1}^n a_ik(x_i,\cdot)$, $x_i \in \mathbb{R}^d$, with $\sup_{x\in\mathcal{X}}|f(x) - g(x)| \leq \epsilon$.
+
+***Proof.*** Let $\mathcal{C}$ be the closure, in the supremum norm on $\mathcal{X}$, of the span of the kernel sections $k(y,\cdot)$, $y \in \mathbb{R}^d$; it is a closed linear subspace of the continuous functions on $\mathcal{X}$, and the claim is that it contains every continuous $g$. (The kernel and its RKHS are defined on all of $\mathbb{R}^d$, and the centres range over $\mathbb{R}^d$; the approximation is required only on $\mathcal{X}$.) With $q(x) := e^{-\|x\|^2/(2\sigma^2)}$ as above, $k(y,x) = q(y)\,q(x)\,e^{y^\top x/\sigma^2}$, so $\mathcal{C}$ contains the functions $x \mapsto q(x)e^{y^\top x/\sigma^2}$ for every $y$.
+
+*Step 1: polynomials times $q$.* We show by induction on the degree that $\mathcal{C}$ contains $x \mapsto q(x)\,p(x)\,e^{y^\top x/\sigma^2}$ for every monomial $p(x) = x_1^{\alpha_1}\cdots x_d^{\alpha_d}$ and every $y$. Degree $0$ is the observation above. If it holds for $p$, consider the difference quotients
+$$D_h(x) := q(x)\,p(x)\,\frac{e^{(y + he_j)^\top x/\sigma^2} - e^{y^\top x/\sigma^2}}{h} \;\in\; \mathcal{C}, \qquad h \neq 0,$$
+with $e_j$ the $j$-th unit vector. With $u := hx_j/\sigma^2$, $\big|\frac{e^u - 1}{h} - \frac{x_j}{\sigma^2}\big| = \frac{|e^u - 1 - u|}{|h|} \leq \frac{u^2e^{|u|}}{2|h|} = \frac{|h|\,x_j^2}{2\sigma^4}e^{|h x_j|/\sigma^2}$, which tends to $0$ uniformly on the compact $\mathcal{X}$ as $h \to 0$; the remaining factor $q\,p\,e^{y^\top x/\sigma^2}$ is bounded there. So $D_h \to q\,p\,\frac{x_j}{\sigma^2}\,e^{y^\top x/\sigma^2}$ uniformly, and $\mathcal{C}$, being closed, contains the limit. Taking $y = 0$, $\mathcal{C}$ contains $q\,p$ for every polynomial $p$.
+
+*Step 2: Weierstrass.* The function $g/q$ is continuous on $\mathcal{X}$, so by the Weierstrass approximation theorem (in its multivariate form) there is a polynomial $p$ with $\sup_{\mathcal{X}}|g/q - p| \leq \epsilon$. Since $0 < q \leq 1$, $\sup_{\mathcal{X}}|g - q\,p| \leq \epsilon$, and $q\,p \in \mathcal{C}$. By the definition of the closure there is a finite kernel expansion within $\epsilon$ of $q\,p$, hence within $2\epsilon$ of $g$; as $\epsilon$ was arbitrary, this proves the claim $\square$
+
+Kernels with this property are called **universal**; see [Steinwart (2001)](https://www.jmlr.org/papers/v2/steinwart01a.html)<!-- cite: steinwart2001influence | article | author={Steinwart, Ingo}; title={On the Influence of the Kernel on the Consistency of Support Vector Machines}; journal={Journal of Machine Learning Research}; year={2001}; volume={2}; pages={67--93} -->. The linear and polynomial kernels are not: their RKHS consists of linear functions, respectively of polynomials of degree at most $d$.
+
+Theorem 9.4 completes the approximation-estimation decomposition of Chapter 5 for RBF kernel methods. Let the loss be bounded in $[0,1]$ and $G$-Lipschitz in the prediction, let $g$ be any continuous predictor, and let $\widehat f$ minimize the empirical risk over $\mathcal{H}_B$. Given $\epsilon > 0$, Theorem 9.4 provides $f_\epsilon$ with finite norm $B_\epsilon := \|f_\epsilon\|_{\mathcal{H}_k}$ and $R(f_\epsilon) \leq R(g) + G\epsilon$. For every $B \geq B_\epsilon$, the decomposition $R(\widehat f) - R(g) = [R(\widehat f) - \min_{f\in\mathcal{H}_B}R(f)] + [\min_{f\in\mathcal{H}_B}R(f) - R(g)]$, Lemma 5.1, and Theorem 5a.2 with the contraction lemma and the trace bound give, with probability at least $1-\delta$,
+$$R(\widehat f) - R(g) \;\leq\; \underbrace{O\Big(\frac{GBR}{\sqrt m} + \sqrt{\frac{\log(1/\delta)}{m}}\Big)}_{\text{estimation}} + \underbrace{G\epsilon}_{\text{approximation}}.$$
+Letting the budget grow with the sample size, $B_m \to \infty$ with $B_m/\sqrt m \to 0$, both terms vanish: for every continuous $g$, the risk of RBF kernel ERM eventually comes within any $\epsilon$ of $R(g)$. The bias-complexity dilemma is resolved here by a schedule rather than by a fixed choice — the same role the regularization path $\lambda_m \to 0$ plays in practice.
 
 ## The Neural Tangent Kernel
 

@@ -1,11 +1,12 @@
-An **ensemble** aggregates the predictions of several hypotheses $h_1,\ldots,h_T$ into a single predictor. The two constructions in this chapter differ in *how* the members are produced and in *which* term of the excess-risk decomposition of Chapter 5 they attack:
+An **ensemble** aggregates the predictions of several hypotheses $h_1,\ldots,h_T$ into a single predictor. The constructions in this chapter differ in *how* the members are produced and in *which* term of the excess-risk decomposition of Chapter 5 they attack:
 
 | | members produced | aggregation | attacks |
 |---|---|---|---|
 | **Bagging** | in parallel, on resampled data | unweighted average | the **variance** term |
 | **Boosting** | in sequence, on reweighted data | weighted vote $\sum_t w_t h_t$ | the **approximation error** $\epsilon_{app}$ |
+| **Gradient boosting** | in sequence, fit to pseudo-residuals | convex combination of the $h_t$ | the **approximation error** $\epsilon_{app}$, for any smooth convex loss |
 
-Bagging takes a low-bias, high-variance base learner and averages its fluctuations away. Boosting takes a high-bias, low-variance base learner — one barely better than a coin flip — and composes many of them into a predictor of much greater capacity. The second is the more surprising of the two, and it is where the theory of this chapter is concentrated.
+Bagging takes a low-bias, high-variance base learner and averages its fluctuations away. Boosting takes a high-bias, low-variance base learner — one barely better than a coin flip — and composes many of them into a predictor of much greater capacity; this is the more surprising of the two, and it is where the theory of this chapter is concentrated. Gradient boosting, introduced last, keeps boosting's stagewise structure but replaces the exponential-loss reweighting of AdaBoost by a functional gradient step, which makes the construction work for any smooth convex loss, regression included.
 
 # Bootstrap Aggregation (Bagging)
 
@@ -122,7 +123,7 @@ Two readings of the proof are worth keeping. First, AdaBoost is **coordinate-wis
 
 This is the theorem that made boosting famous: a learner that can only beat a coin flip by $\gamma$, on every reweighting of the sample, can be compiled into one that fits the sample perfectly, in $O(\gamma^{-2}\log m)$ rounds. **Weak** and **strong** learnability are the same notion, up to computation. What remains is to price the generalization of the resulting predictor — and this is where two different complexity measures give two genuinely different answers.
 
-## What Linear Combinations Cost: Two Accounts
+## What Linear Combinations Cost: Three Accounts
 
 ### Account 1: the VC dimension of $L(\mathcal{H}_0,T)$ grows with $T$
 
@@ -191,6 +192,16 @@ Account 2 says that additional boosting rounds cost nothing in complexity — a 
 
 The trade-off has not disappeared, it has moved into $\nu$: a larger $\nu$ shrinks the complexity term but makes the margin-violation term larger. The bound holds for all $\nu$ simultaneously (up to a union bound over a grid of $\nu$'s), so one may read it at whichever $\nu$ is most favorable for the ensemble actually obtained.
 
+### Account 3: the price of an ensemble is its total weight
+
+Account 2 normalized the ensemble to the convex combination $\bar f_T = f_T/\sum_t w_t$. The third account prices the *unnormalized* scale. For a symmetric $\mathcal{H}_0$ and $f = \sum_{t=1}^T w_t h_t$, the **total weight** is $\|w\|_1 := \sum_t |w_t|$, and the ensembles of total weight at most $A$ form the class $\mathcal{F}_{A,L_1}(\mathcal{H}_0)$ of Theorem 5a.9 (Chapter 5a), whose empirical Rademacher complexity is exactly
+$$\widehat{\mathfrak{R}}_S\big(\mathcal{F}_{A,L_1}(\mathcal{H}_0)\big) = A\cdot\widehat{\mathfrak{R}}_S(\mathcal{H}_0),$$
+**independently of the number of rounds $T$**. Account 2's "convexification is free" is the case $A = 1$.
+
+* The price of an ensemble is its total weight $A$, not its member count $T$ — the same accounting as Chapter 8's width-independent Theorem 8.2 for $L_1$-constrained output layers, and the reason an $L_1$ penalty such as the Lasso of Chapter 2 controls capacity through a norm rather than through the number of parameters.
+* For AdaBoost the total weight $\sum_t w_t$ grows with $T$. Theorem 10.3 absorbs this growth by normalizing and measuring margins on the normalized scale; Account 3 says equivalently that the unnormalized $f_T$ belongs to a class whose complexity grows linearly in $\sum_t w_t$.
+* Combined with Maurey's lemma (Theorem 5a.8, Chapter 5a), the account explains why stagewise greedy search is reasonable: every point of $\mathcal{F}_{A,L_1}(\mathcal{H}_0)$ is, on the sample, within $AB/\sqrt N$ of an $N$-term average of members of $\mathcal{H}_0$, so a procedure that adds one member per round searches a set that already contains good sparse approximants of every point of the full class. Theorem 10.4 below is the algorithmic counterpart of this approximation fact.
+
 ## Implementation: AdaBoost with Decision Stumps
 
 We implement Definition 10.3 and the AdaBoost pseudocode literally: the weak learner is an exhaustive search over $\mathcal{H}_{\mathrm{stump}}$ for the stump of least $D$-weighted error, and the boosting loop is the four numbered steps. The data set is the **Wisconsin Breast Cancer** set of Chapters 6 and 7 ($569$ samples, $d=30$ features), with labels recoded to $\{-1,+1\}$. Alongside the two error curves we track $\min_i y_i \bar f_T(x_i)$, the smallest training margin — the quantity Theorem 10.3 says should keep improving after the training error stops.
@@ -233,8 +244,13 @@ def weak_learner(D):
         errs = Ds[ys == -1].sum() + th.cat([th.zeros(1, dtype=D.dtype),
                                             th.cumsum(Ds * ys, dim=0)])
         thetas = th.cat([th.tensor([-float('inf')], dtype=xs.dtype), xs])
+        # A threshold can only fall between two *distinct* values: with ties,
+        # x > theta sends all copies of a value to the same side.
+        valid = th.ones(m + 1, dtype=th.bool)
+        valid[1:m] = xs[:-1] < xs[1:]
         for s in (1, -1):                              # both leaf polarities
             e = errs if s == 1 else 1.0 - errs
+            e = th.where(valid, e, th.tensor(float('inf'), dtype=e.dtype))
             k = int(e.argmin())
             if e[k] < best[0]:
                 best = (e[k].item(), j, thetas[k].item(), s)
@@ -291,15 +307,184 @@ plt.tight_layout(); plt.show()
 
            T   train err   test err   min margin
            1    0.0804     0.0819     -1.0000
-           5    0.0251     0.0585     -0.6193
-          10    0.0201     0.0585     -0.1861
-          27    0.0000     0.0292     +0.0253
-          50    0.0000     0.0351     +0.0599
-         100    0.0000     0.0292     +0.1175
-         200    0.0000     0.0234     +0.1268
+           5    0.0327     0.0643     -0.3449
+          10    0.0151     0.0643     -0.1646
+          19    0.0000     0.0526     +0.0225
+          50    0.0000     0.0409     +0.0990
+         100    0.0000     0.0234     +0.1198
+         200    0.0000     0.0175     +0.1441
 
-    training error first reaches 0 at T = 27
+    training error first reaches 0 at T = 19
 
 ![AdaBoost's training and test error (left) and minimum training margin (right) as a function of the number of boosting rounds $T$, on a logarithmic axis; the dotted line marks the round at which training error first reaches zero.](fig/generated/10_Ensemble_Methods_1.png)
 
-The numbers track the theory. Across the $200$ rounds the worst weighted error the stump search ever returns is $\epsilon_t = 0.436$, so the weak-learning parameter realized on this data set is $\gamma = 0.065$. Theorem 10.1 then guarantees only $\widehat{R}_S \leq e^{-2(0.065)^2\cdot 27} \approx 0.80$ after $27$ rounds, and Corollary 10.1's sufficient budget is $\log(398)/(2\cdot0.065^2) \approx 720$ rounds — both valid but, as worst-case bounds usually are, far more conservative than what actually happens: the training error is already exactly $0$ at $T = 27$. From $T=27$ onward, the first term of Account 1 is frozen at $0$ and its complexity term keeps growing, so (10.1) predicts deterioration; instead the test error *falls further*, from $2.9\%$ to $2.3\%$. Account 2 explains why: over the same rounds the smallest training margin climbs from $+0.025$ to $+0.127$, so the margin-violation term of Theorem 10.3 keeps shrinking at any fixed threshold $\nu \lesssim 0.12$, while its complexity term $\frac2\nu \widehat{\mathfrak{R}}_S(\mathcal{H}_{\mathrm{stump}})$ never moved.
+The numbers track the theory. Across the $200$ rounds the worst weighted error the stump search ever returns is $\epsilon_t = 0.376$, so the weak-learning parameter realized on this data set is $\gamma = 0.124$. Theorem 10.1 then guarantees only $\widehat{R}_S \leq e^{-2(0.124)^2\cdot 19} \approx 0.56$ after $19$ rounds, and Corollary 10.1's sufficient budget is $\log(398)/(2\cdot0.124^2) \approx 193$ rounds — both valid but, as worst-case bounds usually are, far more conservative than what actually happens: the training error is already exactly $0$ at $T = 19$. From $T=19$ onward, the first term of Account 1 is frozen at $0$ and its complexity term keeps growing, so (10.1) predicts deterioration; instead the test error *falls further*, from $5.3\%$ to $1.8\%$. Account 2 explains why: over the same rounds the smallest training margin climbs from $+0.023$ to $+0.144$, so the margin-violation term of Theorem 10.3 keeps shrinking at any fixed threshold $\nu \lesssim 0.14$, while its complexity term $\frac2\nu \widehat{\mathfrak{R}}_S(\mathcal{H}_{\mathrm{stump}})$ never moves.
+
+# Gradient Boosting
+
+AdaBoost minimizes the exponential loss by greedy coordinate descent (the first reading of Theorem 10.1's proof). **Gradient boosting** — [Friedman (2001)](https://doi.org/10.1214/aos/1013203451)<!-- cite: friedman2001greedy | article | author={Friedman, Jerome H.}; title={Greedy Function Approximation: A Gradient Boosting Machine}; journal={Annals of Statistics}; year={2001}; volume={29}; number={5}; pages={1189--1232} -->, [Mason et al. (1999)](https://papers.nips.cc/paper/1766-boosting-algorithms-as-gradient-descent)<!-- cite: mason1999boosting | inproceedings | author={Mason, Llew and Baxter, Jonathan and Bartlett, Peter L. and Frean, Marcus}; title={Boosting Algorithms as Gradient Descent}; booktitle={Advances in Neural Information Processing Systems 12}; year={1999}; pages={512--518} --> — runs the same greedy scheme on any differentiable loss $L(f,y)$.
+
+Throughout this section $\langle a,b\rangle_S := \frac1m\sum_{i=1}^m a_ib_i$ and $\|a\|_S := \langle a,a\rangle_S^{1/2}$ for functions or vectors evaluated on the sample, as in Chapter 5a, and
+$$\widehat{L}(f) := \frac1m\sum_{i=1}^m L\big(f(x_i),y_i\big)$$
+is the empirical loss. $\widehat{L}$ depends on $f$ only through the prediction vector $(f(x_1),\ldots,f(x_m))$, and its gradient with respect to that vector is $-\frac1m r$, where
+$$r_i := -\frac{\partial L(a,y_i)}{\partial a}\Big|_{a=f(x_i)}, \qquad i = 1,\ldots,m,$$
+are the **pseudo-residuals**. A gradient step on the prediction vector would produce a vector, not a function; boosting replaces it by a step towards the base hypothesis best aligned with $r$.
+
+**AdaBoost as a special case.** For the exponential loss $L(f,y) = e^{-yf}$ the pseudo-residuals are $r_i = y_ie^{-y_if(x_i)}$, which by Step 2 of the proof of Theorem 10.1 are proportional to $y_iD_i^{(t)}$ at $f = f_{t-1}$. For $h$ with values in $\{-1,+1\}$, $y_ih(x_i) = 1 - 2\,\mathds{1}(h(x_i) \neq y_i)$, so
+$$\sum_i r_ih(x_i) \;\propto\; \sum_i D_i^{(t)}y_ih(x_i) = 1 - 2\epsilon_t(h):$$
+the base hypothesis best aligned with the pseudo-residuals is the one of least weighted error, AdaBoost's step 2.1, and Step 3 of the proof showed that $w_t$ is the exact minimizer of the loss along it. For the squared loss $L(f,y) = \tfrac12(f-y)^2$, the pseudo-residuals $r_i = y_i - f(x_i)$ are the ordinary residuals, and boosting fits each new member to what the current ensemble still gets wrong.
+
+**The construction.** The version we analyze is the conditional-gradient method of [Frank & Wolfe (1956)](https://doi.org/10.1002/nav.3800030109)<!-- cite: frank1956algorithm | article | author={Frank, Marguerite and Wolfe, Philip}; title={An Algorithm for Quadratic Programming}; journal={Naval Research Logistics Quarterly}; year={1956}; volume={3}; number={1--2}; pages={95--110} --> run over the convex hull of the base class, in the greedy-approximation form of [Jones (1992)](https://doi.org/10.1214/aos/1176348546)<!-- cite: jones1992simple | article | author={Jones, Lee K.}; title={A Simple Lemma on Greedy Approximation in Hilbert Space and Convergence Rates for Projection Pursuit Regression and Neural Network Training}; journal={Annals of Statistics}; year={1992}; volume={20}; number={1}; pages={608--613} --> and [Zhang (2003)](https://doi.org/10.1109/TIT.2002.808136)<!-- cite: zhang2003sequential | article | author={Zhang, Tong}; title={Sequential Greedy Approximation for Certain Convex Optimization Problems}; journal={IEEE Transactions on Information Theory}; year={2003}; volume={49}; number={3}; pages={682--691} -->. It assumes $L$ convex and **$\beta$-smooth** in its first argument: $a \mapsto \partial L(a,y)/\partial a$ is $\beta$-Lipschitz for every $y$. The logistic loss $\log(1+e^{-yf})$ of Chapter 3 has second derivative $\sigma(yf)\sigma(-yf) \leq \tfrac14$, so $\beta = \tfrac14$; the squared loss has $\beta = 1$; the exponential loss is smooth only on bounded predictions. The base class $\mathcal{H}_0$ consists of real-valued functions with
+$$B^2 := \sup_{h\in\mathcal{H}_0}\|h\|_S^2 < \infty.$$
+Start from $f^{(0)} := 0$ and, for $t = 1,\ldots,T$, with $\eta_t := \frac{2}{t+1}$:
+
+1. Compute the pseudo-residuals $r^{(t)}$ at $f^{(t-1)}$.
+2. Fit the base learner by least squares, $\displaystyle h_t \in \arg\min_{h\in\mathcal{H}_0}\ \big\|\beta\eta_t\,h - r^{(t)}\big\|_S^2$.
+3. Average, $f^{(t)} := (1-\eta_t)f^{(t-1)} + \eta_t h_t$.
+
+Since $\eta_1 = 1$, $f^{(1)} = h_1$, and every $f^{(t)}$ is a convex combination of $h_1,\ldots,h_t$: the iterates stay in $\mathrm{conv}(\mathcal{H}_0)$, and the algorithm is a conditional-gradient (Frank-Wolfe) method on the hull. Expanding the square in step 2 and dropping the term $\|r^{(t)}\|_S^2$, which does not depend on $h$, step 2 minimizes
+$$-2\eta_t\langle r^{(t)},h\rangle_S + \beta\eta_t^2\|h\|_S^2,$$
+a trade-off between alignment with the pseudo-residuals and the curvature penalty that smoothness charges for a step of length $\eta_t$ towards $h$. The target $r^{(t)}/(\beta\eta_t)$ grows as $\eta_t$ shrinks, but the fit is confined to $\mathcal{H}_0$, so the actual step $\eta_t(h_t - f^{(t-1)})$ shrinks.
+
+---
+
+**Theorem 10.4 (Gradient boosting converges on the convex hull).** Let $L$ be convex and $\beta$-smooth in its first argument, let $B^2 := \sup_{h\in\mathcal{H}_0}\|h\|_S^2$, and let each round compute an exact minimizer in step 2. Then for every $T \geq 1$,
+$$\widehat{L}\big(f^{(T)}\big) \;\leq\; \inf_{f \in \mathrm{conv}(\mathcal{H}_0)}\widehat{L}(f) \;+\; \frac{8\beta B^2}{T+1}.$$
+
+**Proof.** Fix a competitor $f = \sum_j u_j\psi_j \in \mathrm{conv}(\mathcal{H}_0)$ with $u_j \geq 0$, $\sum_j u_j = 1$, $\psi_j \in \mathcal{H}_0$, and let $\Delta_t := \widehat{L}(f^{(t)}) - \widehat{L}(f)$. Fix a round $t$ and abbreviate $\eta := \eta_t$, $r := r^{(t)}$, $h := h_t$, $f_- := f^{(t-1)}$. The norm $\|\cdot\|_S$ is convex, so $\|f_-\|_S \leq B$ ($f_-$ is $0$ or a convex combination of members of $\mathcal{H}_0$), and likewise $\|f\|_S \leq B$.
+
+*Step 1: smoothness.* Lemma 8.1(i) of Chapter 8, in dimension one, applied to $a \mapsto L(a,y_i)$ between $f_-(x_i)$ and $f^{(t)}(x_i) = f_-(x_i) + \eta\,(h - f_-)(x_i)$ and averaged over $i$, gives
+$$\widehat{L}(f^{(t)}) \;\leq\; \widehat{L}(f_-) - \eta\langle r, h - f_-\rangle_S + \frac{\beta\eta^2}{2}\|h - f_-\|_S^2 \;\leq\; \widehat{L}(f_-) - \eta\langle r, h - f_-\rangle_S + \beta\eta^2\big(\|h\|_S^2 + B^2\big),$$
+using $\|a - b\|_S^2 \leq 2\|a\|_S^2 + 2\|b\|_S^2$.
+
+*Step 2: least-squares optimality.* Comparing $h$ with each $\psi_j$ in step 2 and averaging with the weights $u_j$,
+$$-2\eta\langle r,h\rangle_S + \beta\eta^2\|h\|_S^2 \;\leq\; \sum_j u_j\Big(-2\eta\langle r,\psi_j\rangle_S + \beta\eta^2\|\psi_j\|_S^2\Big) \;\leq\; -2\eta\langle r,f\rangle_S + \beta\eta^2B^2.$$
+Hence, using also $\|h\|_S \leq B$,
+$$-\eta\langle r,h\rangle_S + \beta\eta^2\|h\|_S^2 = \tfrac12\Big(-2\eta\langle r,h\rangle_S + \beta\eta^2\|h\|_S^2\Big) + \tfrac{\beta\eta^2}{2}\|h\|_S^2 \;\leq\; -\eta\langle r,f\rangle_S + \beta\eta^2B^2,$$
+and Step 1 becomes
+$$\widehat{L}(f^{(t)}) \;\leq\; \widehat{L}(f_-) + \eta\langle r, f_- - f\rangle_S + 2\beta\eta^2B^2.$$
+*Step 3: convexity.* The first-order condition for the convex $\widehat{L}$, whose gradient is $-\frac1m r$, reads $\widehat{L}(f) \geq \widehat{L}(f_-) - \langle r, f - f_-\rangle_S$, i.e. $\langle r, f_- - f\rangle_S \leq -\Delta_{t-1}$. Therefore
+$$\Delta_t \;\leq\; (1-\eta_t)\,\Delta_{t-1} + 2\beta\eta_t^2B^2 = \frac{t-1}{t+1}\,\Delta_{t-1} + \frac{8\beta B^2}{(t+1)^2}.$$
+*Step 4: the recursion.* Multiplying by $t(t+1)$,
+$$t(t+1)\,\Delta_t \;\leq\; (t-1)t\,\Delta_{t-1} + 8\beta B^2\,\frac{t}{t+1} \;\leq\; (t-1)t\,\Delta_{t-1} + 8\beta B^2.$$
+Summing over $t = 1,\ldots,T$, the left-hand terms telescope and the first one vanishes (its coefficient is $0\cdot1$), so $T(T+1)\Delta_T \leq 8\beta B^2T$. Since $f \in \mathrm{conv}(\mathcal{H}_0)$ was arbitrary, the claim follows $\square$
+
+Bounds of this type go back to the greedy-approximation analyses of Jones (1992) and Zhang (2003); [Jaggi (2013)](https://proceedings.mlr.press/v28/jaggi13.html)<!-- cite: jaggi2013revisiting | inproceedings | author={Jaggi, Martin}; title={Revisiting {Frank-Wolfe}: Projection-Free Sparse Convex Optimization}; booktitle={Proceedings of the 30th International Conference on Machine Learning}; series={PMLR}; volume={28}; number={1}; year={2013}; pages={427--435} --> gives the corresponding analysis of the Frank-Wolfe method. The theorem is the algorithmic counterpart of Maurey's lemma (Theorem 5a.8): the infimum over the *convex hull* is approached, at rate $O(1/T)$, by a $T$-term combination, found greedily without ever solving an optimization problem over $\mathrm{conv}(\mathcal{H}_0)$.
+
+**What the scale $B$ controls.** Write $\mathcal{H}_0 = B\cdot\mathcal{H}_1$ for a fixed class $\mathcal{H}_1$ with $\sup_{h\in\mathcal{H}_1}\|h\|_S \leq 1$. Then $B$ enters the analysis three times:
+* *approximation:* $\mathrm{conv}(B\mathcal{H}_1)$ grows with $B$, so $\inf_{f}\widehat{L}(f)$ decreases;
+* *optimization:* the convergence term $8\beta B^2/(T+1)$ grows as $B^2$, so more rounds are needed;
+* *complexity:* $\widehat{\mathfrak{R}}_S(\mathrm{conv}(B\mathcal{H}_1)) = B\,\widehat{\mathfrak{R}}_S(\mathcal{H}_1)$ by Theorem 10.2, so, through the contraction lemma and Theorem 5a.2 for a Lipschitz loss such as the logistic one, the generalization gap grows linearly in $B$ — Account 3, with $A = B$.
+
+$B$ is therefore a regularization parameter of the same kind as the number of rounds $T$ in AdaBoost, trading the approximation error against the estimation error.
+
+## Implementation: Gradient Boosting with Regression Stumps
+
+We implement the construction on the same split of the Wisconsin Breast Cancer data as the AdaBoost experiment, with the logistic loss ($\beta = \tfrac14$). The base class consists of regression stumps $h(x) = s_L$ if $x_j \leq \theta$ and $h(x) = s_R$ otherwise, with leaf values $s_L, s_R \in [-B,B]$, so that $\sup_h\|h\|_S \leq B$ as Theorem 10.4 requires. Step 2 is solved exactly: for a fixed split the least-squares problem separates over the two leaves, and on each leaf the minimizer of $\sum_i (s - u_i)^2$ over $s \in [-B,B]$ is the leaf mean of the target clipped to $[-B,B]$. Every split is therefore scored in $O(1)$ from prefix sums over the sorted feature values, and the base learner is an exhaustive search over all $O(dm)$ splits. We run the algorithm for $B \in \{1, 4, 16\}$.
+
+```python
+# Gradient boosting from scratch, as in the pseudocode above: logistic loss,
+# base class = regression stumps with leaf values in [-B, B], each round an
+# exact least-squares fit of beta*eta_t*h to the pseudo-residuals, and the
+# averaging update with eta_t = 2/(t+1) of Theorem 10.4.
+
+import torch as th
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_breast_cancer
+
+th.manual_seed(0)
+
+data = load_breast_cancer()                            # same split as AdaBoost
+X_all = th.tensor(data.data, dtype=th.float64)
+y_all = 2 * th.tensor(data.target, dtype=th.float64) - 1   # labels in {-1,+1}
+idx = th.randperm(y_all.numel())
+n_tr = int(0.7 * y_all.numel())
+tr, te = idx[:n_tr], idx[n_tr:]
+X, y = X_all[tr], y_all[tr]
+X_te, y_te = X_all[te], y_all[te]
+m, d = X.shape
+order = th.argsort(X, dim=0)                           # sort once, reuse
+
+BETA = 0.25                                            # smoothness of the logistic loss
+
+# --- Base learner: exact least squares over regression stumps ----------------
+# A stump h(x) = s_L if x_j <= theta else s_R. For a fixed split, the least-
+# squares fit of the target u is separable in the two leaves, and on each leaf
+# the box-constrained minimizer of sum (s - u_i)^2 is the leaf mean clipped to
+# [-B, B]. The squared error of a leaf with n points, sum q and clipped value s
+# is  sum u_i^2 - 2 s q + n s^2,  so every split is scored from prefix sums.
+
+def fit_stump(u, B):
+    best = (float('inf'), None)
+    tot, sq = u.sum(), u.square().sum()
+    for j in range(d):
+        o = order[:, j]
+        xs, us = X[o, j], u[o]
+        n_l = th.arange(1, m, dtype=th.float64)        # split after point k-1
+        q_l = us.cumsum(0)[:-1]                        # left sums
+        n_r, q_r = m - n_l, tot - q_l                  # right counts and sums
+        s_l = (q_l / n_l).clamp(-B, B)
+        s_r = (q_r / n_r).clamp(-B, B)
+        sse = sq - 2 * s_l * q_l + n_l * s_l**2 - 2 * s_r * q_r + n_r * s_r**2
+        sse[xs[:-1] == xs[1:]] = float('inf')          # cannot split inside ties
+        k = int(sse.argmin())
+        if sse[k] < best[0]:
+            best = (sse[k].item(), (j, xs[k].item(), s_l[k].item(), s_r[k].item()))
+    return best[1]
+
+def stump_predict(Xq, stump):
+    j, theta, s_l, s_r = stump
+    return th.where(Xq[:, j] <= theta, s_l, s_r).double()
+
+# --- Gradient boosting --------------------------------------------------------
+
+def gradient_boost(B, T):
+    F = th.zeros(m, dtype=th.float64)                  # f^(0) = 0 on the train set
+    F_te = th.zeros(y_te.numel(), dtype=th.float64)    # ... and on the test set
+    loss_tr, err_tr, err_te = [], [], []
+    for t in range(1, T + 1):
+        eta = 2.0 / (t + 1)
+        r = y * th.sigmoid(-y * F)                     # 1. pseudo-residuals -dL/df
+        stump = fit_stump(r / (BETA * eta), B)         # 2. argmin sum (beta*eta*h - r)^2
+        F = (1 - eta) * F + eta * stump_predict(X, stump)        # 3. averaging
+        F_te = (1 - eta) * F_te + eta * stump_predict(X_te, stump)  #  update
+        loss_tr.append(th.log1p(th.exp(-y * F)).mean().item())
+        err_tr.append((th.sign(F) != y).double().mean().item())
+        err_te.append((th.sign(F_te) != y_te).double().mean().item())
+    return loss_tr, err_tr, err_te
+
+T = 400
+runs = {B: gradient_boost(B, T) for B in (1.0, 4.0, 16.0)}
+
+print("       B       T   train loss   train err   test err")
+for B, (loss_tr, err_tr, err_te) in runs.items():
+    for t in [10, 100, 400]:
+        print(f"{B:8.0f}{t:8d}     {loss_tr[t-1]:.4f}      {err_tr[t-1]:.4f}"
+              f"     {err_te[t-1]:.4f}")
+
+rounds = th.arange(1, T + 1)
+fig, ax = plt.subplots(1, 2, figsize=(11, 4))
+for c, (B, (loss_tr, err_tr, err_te)) in enumerate(runs.items()):
+    ax[0].plot(rounds, loss_tr, c=f"C{c}", label=f"$B = {B:.0f}$")
+    ax[1].plot(rounds, err_te, c=f"C{c}", label=f"$B = {B:.0f}$")
+ax[0].set_xscale("log"); ax[0].set_xlabel("boosting rounds $T$")
+ax[0].set_ylabel("training logistic loss"); ax[0].legend(); ax[0].grid(alpha=.3)
+ax[1].set_xscale("log"); ax[1].set_xlabel("boosting rounds $T$")
+ax[1].set_ylabel("test error"); ax[1].legend(); ax[1].grid(alpha=.3)
+plt.tight_layout(); plt.show()
+```
+
+           B       T   train loss   train err   test err
+           1      10     0.3780      0.0578     0.0585
+           1     100     0.3777      0.0553     0.0468
+           1     400     0.3777      0.0553     0.0526
+           4      10     0.2119      0.0503     0.0468
+           4     100     0.1142      0.0176     0.0351
+           4     400     0.1102      0.0176     0.0351
+          16      10     0.2119      0.0503     0.0468
+          16     100     0.0931      0.0101     0.0292
+          16     400     0.0520      0.0075     0.0175
+
+![Gradient boosting with regression stumps whose leaf values are bounded by $B$ in absolute value: training logistic loss (left) and test error (right) as a function of the number of rounds $T$, for $B \in \{1,4,16\}$, on a logarithmic axis.](fig/generated/10_Ensemble_Methods_2.png)
+
+The three runs separate the three roles of $B$. With $B = 1$ the training loss is flat after about ten rounds at $0.378$: Theorem 10.4 guarantees a gap of at most $8\cdot\tfrac14\cdot1/(T+1) \approx 0.005$ at $T = 400$, so this is (up to that gap) the infimum over $\mathrm{conv}(\mathcal{H}_0)$, and it is high because a convex combination of stumps with values in $[-1,1]$ cannot exceed $1$ in absolute value — the logistic loss of a correct prediction is then at least $\log(1+e^{-1}) \approx 0.31$. The approximation error dominates, and the test error stays near $5\%$. With $B = 4$ the hull is larger, the training loss reaches $0.110$ and the training error $1.8\%$; the runs for $B = 4$ and $B = 16$ coincide for the first twenty rounds, until the box $[-4,4]$ starts to clip a leaf value. (The loss of both rises at $T = 2$: Theorem 10.4 bounds the gap to the infimum, not the change from one round to the next.) With $B = 16$ the training loss is still decreasing at $T = 400$ — the guarantee $8\cdot\tfrac14\cdot256/401 \approx 1.3$ is vacuous here, so the convergence is faster than the worst case, but visibly slower than for small $B$ — and the test error reaches $1.8\%$, the value AdaBoost attains at $T = 200$. On this data set the approximation gain of a larger budget outweighs its complexity cost up to $B = 16$; the complexity term of Account 3 says that this cannot continue indefinitely, since the generalization bound grows linearly in $B$.

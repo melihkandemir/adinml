@@ -91,7 +91,7 @@ Consider a tiny data set for deciding whether to play outdoor tennis, with two b
 | $\mathtt{Outlook}$ | $\mathtt{Wind}$ | $\mathtt{Play}$ |
 |---|---|---|
 | Sunny | Weak | Yes |
-| Sunny | Strong | Yes |
+| Sunny | Weak | Yes |
 | Sunny | Weak | Yes |
 | Sunny | Strong | No |
 | Rainy | Weak | No |
@@ -110,16 +110,16 @@ G(S_{\text{right}}) = 1 - 1^2 - 0^2 = 0.
 
 $$\mathrm{Gain}(S, \mathtt{Outlook}) = 0.5 - \tfrac{4}{8}(0.375) - \tfrac{4}{8}(0) = 0.5 - 0.1875 = 0.3125.$$
 
-**Candidate split on $\mathtt{Wind}$.** This sends the $4$ Weak points (2 Yes, 2 No) to the left child and the $4$ Strong points (1 Yes, 3 No) to the right child:
+**Candidate split on $\mathtt{Wind}$.** This sends the $5$ Weak points (3 Yes, 2 No) to the left child and the $3$ Strong points (0 Yes, 3 No) to the right child:
 
 $$\begin{gathered}
-G(S_{\text{left}}) = 1 - \big(\tfrac12\big)^2 - \big(\tfrac12\big)^2 = 0.5, \\
-G(S_{\text{right}}) = 1 - \big(\tfrac14\big)^2 - \big(\tfrac34\big)^2 = 0.375.
+G(S_{\text{left}}) = 1 - \big(\tfrac35\big)^2 - \big(\tfrac25\big)^2 = 0.48, \\
+G(S_{\text{right}}) = 1 - 0^2 - 1^2 = 0.
 \end{gathered}$$
 
-$$\mathrm{Gain}(S, \mathtt{Wind}) = 0.5 - \tfrac48(0.5) - \tfrac48(0.375) = 0.5 - 0.4375 = 0.0625.$$
+$$\mathrm{Gain}(S, \mathtt{Wind}) = 0.5 - \tfrac58(0.48) - \tfrac38(0) = 0.5 - 0.3 = 0.2.$$
 
-Since $\mathrm{Gain}(S,\mathtt{Outlook}) = 0.3125 > 0.0625 = \mathrm{Gain}(S,\mathtt{Wind})$, the greedy algorithm splits on $\mathtt{Outlook}$ first. The right child (Rainy) is already pure ($G=0$) and becomes a leaf predicting $\mathrm{No}$. The left child (Sunny, $3$ Yes/$1$ No) is not pure, so we recurse: splitting it further on $\mathtt{Wind}$ sends its single Strong/No point to its own leaf and the remaining $3$ Weak/Yes points to another, both pure, terminating the recursion. The resulting tree is
+Since $\mathrm{Gain}(S,\mathtt{Outlook}) = 0.3125 > 0.2 = \mathrm{Gain}(S,\mathtt{Wind})$, the greedy algorithm splits on $\mathtt{Outlook}$ first. The right child (Rainy) is already pure ($G=0$) and becomes a leaf predicting $\mathrm{No}$. The left child (Sunny, $3$ Yes/$1$ No) is not pure, so we recurse: splitting it further on $\mathtt{Wind}$ sends its single Strong/No point to its own leaf and the remaining $3$ Weak/Yes points to another, both pure, terminating the recursion. The resulting tree is
 
 ```
                  Outlook?
@@ -235,3 +235,5 @@ print(f"Decision tree test accuracy:  {test_acc:.3f}")
     Decision tree test accuracy:  0.918
 
 A tree with at most $2^3=8$ leaves ($\texttt{max\_depth=3}$) already reaches $91.8\%$ test accuracy — close to its $96.5\%$ training accuracy, indicating that the depth cap from Section "PAC Analysis of Decision Trees" above is doing its job of controlling $L$ (and hence $d_{VC}(\mathcal{H}_{\text{tree},L})$) without starving the tree of the capacity it needs to separate the two classes.
+
+Shallow trees are also the standard building blocks of the ensemble methods of Chapter 10: averaging bagged trees gives random forests, and boosting combines depth-one trees (stumps), both as classifiers in AdaBoost and as regression stumps in gradient boosting.

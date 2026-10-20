@@ -385,7 +385,7 @@ This theorem is an analytical way of the argumentation presented above after the
 
 ---
 
-**Theorem 5.4 (The Fundamental Theorem of Statistical Learning).** Assume that $d_{VC}(\mathcal{H}) = d < \infty$. Then, there exist $C_1, C_2 \in \mathbb{R}^+$ such that
+**Theorem 5.4 (The Fundamental Theorem of Statistical Learning).** Let $\mathcal{H}$ be a class of binary classifiers under the zero-one loss, and assume that $d_{VC}(\mathcal{H}) = d < \infty$. Then, there exist $C_1, C_2 \in \mathbb{R}^+$ such that for all $\epsilon,\delta \in (0,\tfrac1{16})$
 
 * $\mathcal{H}$ has the uniform convergence property with sample complexity
 
@@ -394,7 +394,7 @@ This theorem is an analytical way of the argumentation presented above after the
 * $\mathcal{H}$ is agnostic PAC learnable with sample complexity
     $C_1 \frac{d + \log(1/\delta)}{\epsilon^2} \le m_{\mathcal{H}}(\epsilon, \delta) \le C_2 \frac{d + \log(1/\delta)}{\epsilon^2}$
 
-* $\mathcal{H}$ is PAC learnable with sample complexity
+* $\mathcal{H}$ is PAC learnable with sample complexity (the lower bound for $d \geq 2$)
 
     $$C_1 \frac{d + \log(1/\delta)}{\epsilon} \le m_{\mathcal{H}}(\epsilon, \delta) \le C_2 \frac{d \log(1/\epsilon) + \log(1/\delta)}{\epsilon}$$
 
@@ -411,7 +411,7 @@ In words, the following statements are equal:
 
 This outcome is very useful because it allows one to achieve all six of these properties by ensuring only one of them.
 
-***Proof.*** We prove the theorem in two parts: the **equivalence of the six statements**, which is where the conceptual content lies and which we establish completely; and the **sample complexity rates**, whose upper bounds we prove up to a logarithmic factor and whose lower bounds we prove in their $\Theta(d)$ part.
+***Proof.*** We prove the theorem in two parts: the **equivalence of the six statements**, which is where the conceptual content lies and which we establish completely; and the **sample complexity rates**, which rest on tools developed in Chapter 5a: chaining for the agnostic upper bound, and the two-point and Assouad methods for the lower bounds.
 
 **Part 1: the equivalence.** It suffices to close the cycle
 
@@ -430,20 +430,31 @@ after which every statement implies every other, and the two ERM statements foll
 4. *Agnostic PAC learnable $\Rightarrow$ PAC learnable.* Already argued after Definition 5.8: a realizable $\mathcal{D}$ has $\min_{h}R(h)=0$, so Definition 5.6 specializes to Definition 5.8.
 5. *PAC learnable $\Rightarrow$ finite $d_{VC}$.* This is the contrapositive of Theorem 5.3, which was proved from Corollary 5.3 and hence from the No Free Lunch theorem.
 
-**Part 2: the upper bounds.** Combining Lemma 5.2 with Massart's lemma bounds the empirical Rademacher complexity of $\mathcal{H}$ by $\sqrt{2d\log(m+1)/m}$ (this is Theorem 5a.3, proved in Chapter 5a), and Theorem 5a.2 then converts it into the uniform bound
+**Part 2: the upper bounds.** *Agnostic case.* The chaining bound (5a.4) of Chapter 5a states that with probability at least $1-\delta$,
+$$\sup_{h\in\mathcal{H}}\big|R(h)-\widehat{R}_S(h)\big| \;\leq\; 96\sqrt{\frac{d}{m}} + 3\sqrt{\frac{\log(4/\delta)}{2m}}.$$
+Both terms are at most $\epsilon/2$ as soon as $m \geq 192^2\,d/\epsilon^2$ and $m \geq 18\log(4/\delta)/\epsilon^2$, and $\log(4/\delta) \leq 2\log(1/\delta)$ for $\delta \leq \tfrac14$, so $m_{\mathcal{H}}^{\text{UC}}(\epsilon,\delta) \leq C_2\frac{d+\log(1/\delta)}{\epsilon^2}$ with $C_2 = 192^2 + 36$. Part 1, step 2 turns this into the same rate for $m_{\mathcal{H}}(\epsilon,\delta) \leq m_{\mathcal{H}}^{\text{UC}}(\epsilon/2,\delta)$, at the price of a factor $4$ in $C_2$. (The more elementary route through Theorem 5a.3, which bounds the Rademacher complexity by $2\sqrt{d\log(m+1)/m}$ using Lemma 5.2 and Massart's lemma alone, gives the same rate up to a factor $\log(1/\epsilon)$; chaining is what removes it.)
 
-$$\begin{gathered}
-\sup_{h\in\mathcal{H}}\big|R(h)-\widehat{R}_S(h)\big| \;\leq\; 2\sqrt{\frac{2d\log(m+1)}{m}} + 3\sqrt{\frac{\log(2/\delta)}{2m}} \\
-\text{w.p.} \geq 1-\delta.
-\end{gathered}$$
+*Realizable case.* Let $\mathcal{D}$ be realizable, so that every ERM hypothesis has $\widehat{R}_S(h_S) = 0$, and let $B := \{\exists h \in \mathcal{H} : \widehat{R}_S(h) = 0,\ R(h) > \epsilon\}$. We show that for $m \geq 8/\epsilon$,
+$$P(B) \;\leq\; 2\,\tau_{\mathcal{H}}(2m)\,2^{-\epsilon m/2}. \tag{5.1}$$
+*Step 1: a ghost sample.* Let $S'$ be an independent sample of size $m$ and $B' := \{\exists h \in \mathcal{H} : \widehat{R}_S(h) = 0,\ \widehat{R}_{S'}(h) \geq \epsilon/2\}$. On $B$, fix a hypothesis $h_S$ witnessing $B$, chosen as a function of $S$ alone. Given $S$, $\widehat{R}_{S'}(h_S)$ is the mean of $m$ i.i.d. Bernoulli variables with mean $\mu := R(h_S) > \epsilon$, so Chebyshev's inequality (Theorem 4.2) gives
+$$P\big(\widehat{R}_{S'}(h_S) < \tfrac\epsilon2 \,\big|\, S\big) \;\leq\; P\big(|\widehat{R}_{S'}(h_S) - \mu| > \tfrac\mu2 \,\big|\, S\big) \;\leq\; \frac{\mu(1-\mu)/m}{\mu^2/4} \;\leq\; \frac{4}{m\epsilon} \;\leq\; \frac12 .$$
+Hence $P(B' \mid S) \geq \tfrac12$ on $B$, and $P(B') \geq \tfrac12 P(B)$.
 
-Setting the right-hand side to $\epsilon$ and solving for $m$ gives $m_{\mathcal{H}}^{\text{UC}}(\epsilon,\delta) = O\big(\frac{d\log(1/\epsilon)+\log(1/\delta)}{\epsilon^2}\big)$, and Part 1, step 2 turns this into the same rate for $m_{\mathcal{H}}(\epsilon,\delta)$ with an extra factor $4$ from replacing $\epsilon$ by $\epsilon/2$. This matches the claimed $C_2\frac{d+\log(1/\delta)}{\epsilon^2}$ **up to the residual $\log(1/\epsilon)$ factor**. That last factor is an artifact of applying the finite-class bound at a single resolution; removing it requires the *chaining* argument (the Dudley entropy integral) discussed at the end of the covering-numbers section of Chapter 5a, which we do not develop here. For the realizable case, one exploits that an ERM hypothesis has $\widehat{R}_S(h_S)=0$, for which the multiplicative ("relative deviation") form of the Chernoff bound replaces $\epsilon^2$ by $\epsilon$ in the denominator, yielding the stated $O\big(\frac{d\log(1/\epsilon)+\log(1/\delta)}{\epsilon}\big)$.
+*Step 2: random swaps.* As in the proof of Theorem 5.5, exchanging the $i$-th example of $S$ with the $i$-th example of $S'$, independently for each $i$ with probability $\tfrac12$, leaves the joint law of $(S,S')$ unchanged. So $P(B')$ equals the probability of $B'$ after the swaps, and it suffices to bound the latter conditionally on the $2m$ examples. On these examples $\mathcal{H}$ has at most $\tau_{\mathcal{H}}(2m)$ distinct behaviours. Fix one, and let $r$ be the number of pairs $i$ on which it errs on exactly one of the two examples. If it errs on both examples of some pair, it cannot have zero error on $S$ after any swap. Otherwise, $B'$ requires that all its mistakes land in $S'$ and that there are at least $\epsilon m/2$ of them, so $r \geq \epsilon m/2$, and each of the $r$ pairs must be swapped in the one favourable way, which happens with probability $2^{-r} \leq 2^{-\epsilon m/2}$. A union bound over the behaviours gives $P(B') \leq \tau_{\mathcal{H}}(2m)\,2^{-\epsilon m/2}$, and Step 1 gives (5.1).
+
+*Step 3: solve for $m$.* For $2m \geq d$, Lemma 5.2 gives $\log\tau_{\mathcal{H}}(2m) \leq d\log(2em/d)$, and for any $a > 0$ the inequality $\log u \leq u - 1$ at $u = a\cdot 2em/d$ gives $d\log(2em/d) \leq 2eam - d(1 + \log a)$. With $a := \frac{\epsilon\log 2}{8e}$ this reads $d\log(2em/d) \leq \frac{\epsilon m\log2}{4} + d\log\frac{8}{\epsilon\log 2}$. The right-hand side of (5.1) is therefore at most $\delta$ as soon as
+$$\frac{\epsilon m\log 2}{4} \;\geq\; d\log\frac{8}{\epsilon\log2} + \log\frac2\delta, \quad\text{i.e.}\quad m \;\geq\; \frac{4}{\epsilon\log 2}\Big(d\log\frac{8}{\epsilon\log 2} + \log\frac2\delta\Big),$$
+which also implies $m \geq 8/\epsilon$ and $2m \geq d$. On the complement of $B$, every ERM hypothesis has $R(h_S) \leq \epsilon$, so $m_{\mathcal{H}}(\epsilon,\delta) \leq C_2\frac{d\log(1/\epsilon)+\log(1/\delta)}{\epsilon}$ for $\epsilon,\delta \in (0,\tfrac1{16})$. The $\log(1/\epsilon)$ enters through $\log\tau_{\mathcal{H}}(2m) = O(d\log m)$. Theorem 5.8, at the end of this chapter, is the same argument for a finite class, where no ghost sample is needed. The double-sample argument is due to [Blumer et al. (1989)](https://doi.org/10.1145/76359.76371)<!-- cite: blumer1989learnability | article | author={Blumer, Anselm and Ehrenfeucht, Andrzej and Haussler, David and Warmuth, Manfred K.}; title={Learnability and the Vapnik-Chervonenkis Dimension}; journal={Journal of the ACM}; year={1989}; volume={36}; number={4}; pages={929--965} -->; see also Section 28.3 of [Shalev-Shwartz & Ben-David (2014)](https://doi.org/10.1017/CBO9781107298019)<!-- cite: shalev2014understanding | book | author={Shalev-Shwartz, Shai and Ben-David, Shai}; title={Understanding Machine Learning: From Theory to Algorithms}; publisher={Cambridge University Press}; year={2014} -->.
 
 **Part 3: the lower bounds.** Let $C \subseteq \mathcal{X}$ be a set of size $d$ shattered by $\mathcal{H}$, and let $m < d/2$. Apply Theorem 5.2 with the domain taken to be $C$ (legitimate since $m < |C|/2$) and then Corollary 5.3's observation that shattering places the perfect predictor inside $\mathcal{H}$: for **every** learning algorithm $A$ there is a realizable distribution $\mathcal{D}$ on $C \times \{0,1\}$ with
 
 $$P\big(\{S \sim \mathcal{D}^m : R(A(S)) \geq 1/8\}\big) \geq 1/7 .$$
 
-Hence for any $\epsilon < 1/8$ and $\delta < 1/7$ no sample size below $d/2$ can suffice, i.e. $m_{\mathcal{H}}(\epsilon,\delta) \geq d/2$: the sample complexity must grow at least linearly in the VC dimension, in the realizable case and therefore also in the agnostic case. A second, independent lower bound $m_{\mathcal{H}}(\epsilon,\delta) = \Omega(\log(1/\delta)/\epsilon^2)$ already holds for a class of a *single* hypothesis, by the two-point argument that a $\pm\epsilon$-biased coin needs $\Omega(\epsilon^{-2})$ flips to be told from a fair one. Adding the two gives the claimed shape $\Omega\big(\frac{d+\log(1/\delta)}{\epsilon^2}\big)$ **up to the joint dependence on $d$ and $\epsilon$**; sharpening the first bound from $\Omega(d)$ to $\Omega(d/\epsilon)$ (realizable) and $\Omega(d/\epsilon^2)$ (agnostic) requires a refinement of Theorem 5.2 in which the labels on the shattered set are not deterministic but $\epsilon$-biased coins, so that the learner must additionally *estimate* $d$ separate biases. That refinement is a genuine strengthening of the No Free Lunch argument and we omit it $\square$
+Hence for any $\epsilon < 1/8$ and $\delta < 1/7$ no sample size below $d/2$ can suffice, i.e. $m_{\mathcal{H}}(\epsilon,\delta) \geq d/2$: the sample complexity must grow at least linearly in the VC dimension, in the realizable case and therefore also in the agnostic case. The full rates come from letting the labels on the shattered set be $\epsilon$-biased coins rather than deterministic, so that the learner must additionally *estimate* $d$ separate biases. This is carried out in the minimax section of Chapter 5a, whose Theorem 5a.14 and inequality (5a.7) give, for $\epsilon,\delta \in (0,\tfrac1{16})$:
+* agnostic: $m_{\mathcal{H}}(\epsilon,\delta) \geq \max\Big(\frac{d}{4096\,\epsilon^2},\ \frac{\log(1/(4\delta))}{16\,\epsilon^2}\Big)$;
+* realizable, $d \geq 2$: $m_{\mathcal{H}}(\epsilon,\delta) \geq \max\Big(\frac{d-1}{16\,\epsilon},\ \frac{\log(1/(2\delta))}{4\,\epsilon}\Big)$.
+
+Since $\log(1/(4\delta)) \geq \tfrac12\log(1/\delta)$ for $\delta \leq \tfrac1{16}$, $d - 1 \geq d/2$ for $d \geq 2$, and a maximum is at least the average, both are of the claimed form $C_1\frac{d+\log(1/\delta)}{\epsilon^2}$, respectively $C_1\frac{d+\log(1/\delta)}{\epsilon}$. Finally, $m_{\mathcal{H}}(2\epsilon,\delta) \leq m^{\text{UC}}_{\mathcal{H}}(\epsilon,\delta)$ by Part 1, step 2, so the agnostic lower bound transfers to $m^{\text{UC}}_{\mathcal{H}}$ with $C_1$ divided by $4$. The restriction $d \geq 2$ is necessary: for $\mathcal{H} = \{h, 1-h\}$ a single example identifies the target $\square$
 
 ---
 
@@ -632,6 +643,27 @@ where we use the property $\log(2) < 1$. The right-hand side of this inequality 
 $$h_{MDL} \in \arg \min_{h \in \mathcal{H}} \widehat{R}_S(h) +  \sqrt{\frac{|s(h)| + \log(2/\delta)}{2m}}.$$
 
 Note that this rule suggests the hypothesis that can be expressed with the minimum number of characters among the ones that fit the data best. Hence, it is referred to as the **Minimum Description Length (MDL)** rule. The MDL rule is yet another instance of the Occam's Razor principle in machine learning, which also has overarching consequences on hypothesis development in scientific investigation. This rule also sets a theoretical foundation for the idea of applying **regularizers** in machine learning.
+
+## The Realizable Case: Fast Rates
+
+Theorem 5.1 charges a deviation of order $1/\sqrt m$ whatever the risk of the hypothesis. Under realizability (Definition 5.3) this is pessimistic: a hypothesis with true risk $\mu$ survives $m$ examples with zero training error with probability $(1-\mu)^m$, which decays exponentially in $m\mu$ rather than in $m\mu^2$. The multiplicative Chernoff bounds of Chapter 4 (Theorem 4.7 and Corollary 4.1) turn this observation into a $1/m$ rate.
+
+**Theorem 5.8 (Realizable case: the fast rate).** Let $\mathcal{H}$ be a finite hypothesis class for binary classification under the zero-one loss, realized by $\mathcal{D}$ (Definition 5.3), and let $h_S$ be any ERM hypothesis. Then for any $\delta \in (0,1)$, with probability at least $1-\delta$ over $S \sim \mathcal{D}^m$,
+$$R(h_S) \;\leq\; \frac{\log|\mathcal{H}| + \log(1/\delta)}{m}.$$
+Moreover — and this second statement survives ERM hypotheses with small *nonzero* training error and arbitrary $\mathcal{D}$ — with probability at least $1-\delta$, simultaneously for all $h \in \mathcal{H}$,
+$$R(h) \;\leq\; 2\,\widehat{R}_S(h) + \frac{2\log|\mathcal{H}| + 2\log(1/\delta)}{m}.$$
+
+**Proof.** For the first statement, fix $h \in \mathcal{H}$ with $R(h) = \mu$. Under realizability ERM attains $\widehat{R}_S(h_S) = 0$ (some $h^*$ has zero loss on every sample point, and $h_S$'s training error is minimal). Since the losses $\mathds{1}(h(x_i) \neq y_i)$ are i.i.d. Bernoulli($\mu$),
+$$P\big(\widehat{R}_S(h) = 0\big) = (1-\mu)^m \leq e^{-m\mu},$$
+the $z=0$ case of Theorem 4.7, displayed right after its proof. Union-bounding over the bad events $\{\widehat{R}_S(h) = 0\}$ for those $h$ with $R(h) > \epsilon_0$ (for which $e^{-mR(h)} \leq e^{-m\epsilon_0}$),
+$$P\big(\exists h \in \mathcal{H} : \widehat{R}_S(h) = 0,\ R(h) > \epsilon_0\big) \;\leq\; \sum_{h\,:\,R(h)>\epsilon_0} e^{-mR(h)} \;\leq\; |\mathcal{H}|\,e^{-m\epsilon_0}.$$
+Setting the right-hand side to $\delta$ gives $\epsilon_0 = \frac{\log|\mathcal{H}|+\log(1/\delta)}{m}$. On the complement of this event, every zero-training-error hypothesis has $R(h) \leq \epsilon_0$ — and $h_S$, having $\widehat{R}_S(h_S)=0$, is one of them.
+
+For the second statement, let $\mu := R(h)$, $x := \widehat{R}_S(h)$, and suppose $\mu > 2x + t$. Then the deviation $\epsilon := \mu - x$ satisfies $\epsilon > x + t \geq t$ and, from $x < (\mu - t)/2$, also $\epsilon > \tfrac{\mu+t}{2}$. Corollary 4.1 (lower tail) therefore applies and gives
+$$P\big(\mu > 2x + t\big) \;\leq\; P\big(x \leq \mu - \tfrac{\mu+t}{2}\big) \;\leq\; \exp\Big(-\frac{m(\mu+t)^2/4}{2\mu}\Big) \;\leq\; \exp\Big(-\frac{mt}{2}\Big),$$
+where the second step uses the deviation $\tfrac{\mu+t}{2} \leq \mu$, i.e. $t \leq \mu$ — and if $t > \mu$ the event on the left is empty, since it forces $x < (\mu-t)/2 < 0$ — and the last step uses the AM-GM inequality $(\mu+t)^2 \geq 4\mu t$. Union-bounding over $|\mathcal{H}|$ fixed hypotheses and setting $|\mathcal{H}|\,e^{-mt/2} = \delta$, i.e. $t = \frac{2\log|\mathcal{H}| + 2\log(1/\delta)}{m}$, gives the simultaneous statement $\square$
+
+The contrast with Theorem 5.1 could not be sharper: the deviation scale is now $1/m$, not $1/\sqrt m$. In the first statement the entire mechanism is the multiplicative Chernoff bound — the exponent $m\mu$ is *linear* in the risk being estimated, which is why a hypothesis of true risk, say, $10/m$ has essentially no chance of surviving $m$ examples with zero training error. The second statement is the *relative-deviation* form: the slack $R(h) - 2\widehat{R}_S(h)$ is $O(1/m)$ whenever the empirical risk itself is small, and the first statement is its special case $\widehat{R}_S(h_S) = 0$ (up to the constant $2$). The factor of $2$ in front of $\widehat{R}_S(h)$ is the price of turning a lower-tail bound into a statement uniform over all levels of training error. The same mechanism, run over the finitely many behaviours of an infinite class on a sample, gives the realizable rate of the Fundamental Theorem (Part 2 of the proof of Theorem 5.4).
 
 ---
 

@@ -36,6 +36,11 @@ This table collects the symbols used throughout the book for quick reference. Ch
 | $\log$ | Natural logarithm |
 | $\sigma$ | Standard deviation (bandwidth of an RBF kernel in Chapter 9 only) |
 | $\sigma_i \in \{-1,+1\}$ | A Rademacher sign (from Chapter 5a onwards) |
+| $\mathrm{kl}(z\,\|\,\mu)$ | KL divergence between Bernoulli($z$) and Bernoulli($\mu$) (Chapter 4) |
+| $\mathrm{KL}(P\,\|\,Q)$ | Kullback-Leibler divergence $\mathbb{E}_P[\log\frac{dP}{dQ}]$ (Chapter 5a) |
+| $\mathrm{TV}(P,Q)$, $\chi^2(P\,\|\,Q)$ | Total variation distance, chi-squared divergence (Chapter 5a) |
+| $P^{\otimes m}$, $\mathcal{D}^m$ | Law of $m$ i.i.d. draws |
+| $I(j,S)$ | Mutual information between an index $j$ and a sample $S$ (Chapter 5a) |
 
 **Losses and risks**
 
@@ -61,6 +66,12 @@ This table collects the symbols used throughout the book for quick reference. Ch
 | $d_{VC}(\mathcal{H})$ | VC dimension of $\mathcal{H}$ |
 | $\tau_{\mathcal{H}}(m)$ | Growth function of $\mathcal{H}$ |
 | $\mathfrak{R}, \widehat{\mathfrak{R}}_S$ | Rademacher complexity (population, empirical) |
+| $N(\epsilon,\mathcal{H},\mathrm{dist})$ | Covering number of $\mathcal{H}$ at scale $\epsilon$ |
+| $\langle a,b\rangle_S$, $\|g\|_S$ | Empirical inner product $\frac1m\sum_i a_ib_i$ and norm on the sample; $L_p(S)$ the empirical $L_p$ distance (Chapter 5a) |
+| $\mathrm{conv}(\mathcal{H})$ | Convex hull: all finite convex combinations of members of $\mathcal{H}$ |
+| $\mathcal{F}_{A,L_1}(\Psi)$ | Combinations of members of $\Psi$ with total weight $\sum_j|w_j| \leq A$ (Chapter 5a) |
+| $\epsilon$-uniformly stable | Stability parameter of an algorithm (Definition 5a.3); here $\epsilon$ is a sensitivity, not an accuracy |
+| $r_m(\mathcal{P},Q)$ | Minimax risk (Definition 5a.4) |
 
 **Model and optimization symbols**
 
@@ -69,6 +80,10 @@ This table collects the symbols used throughout the book for quick reference. Ch
 | $w$ | A weight vector |
 | $\lambda$ | A regularization coefficient |
 | $\alpha$ | A learning rate |
+| $\beta$ | Smoothness constant: $\nabla f$ is $\beta$-Lipschitz (Chapters 5a, 8, 10); inverse temperature in PAC-Bayes (Chapter 5a) |
+| $\lambda$-strongly convex | See Theorem 5a.11 |
+| $\gamma$ | Weak-learning edge (Chapter 10) |
+| $\eta_t$ | Step size of gradient boosting (Chapter 10) |
 
 **Neural networks (Chapter 8)**
 

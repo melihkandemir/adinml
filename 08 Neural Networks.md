@@ -461,7 +461,7 @@ Write $\mathcal{H}_{k,B_1,B_2}$ for the resulting hypothesis class. Note that $k
 
 **Theorem 8.1 (Rademacher complexity of a two-layer network).**
 
-$$\widehat{\mathfrak{R}}_S(\mathcal{H}_{k,B_1,B_2}) \leq \frac{\sqrt{k}\,B_1 B_2 R}{\sqrt{m}}.$$
+$$\widehat{\mathfrak{R}}_S(\mathcal{H}_{k,B_1,B_2}) \leq \frac{2\sqrt{k}\,B_1 B_2 R}{\sqrt{m}}.$$
 
 **Proof.** Fix the sample $S = \{x_1,\ldots,x_m\}$. Since $h_{W,w}(x) = \sum_{j=1}^k w_j\, g(w_j^{(1)\top}x)$ is linear in $w$, the supremum over $\|w\|_2 \leq B_2$ of a linear functional is attained by Cauchy-Schwarz, for every fixed realization of the Rademacher signs $\sigma_1,\ldots,\sigma_m$:
 
@@ -480,15 +480,15 @@ $$
 \end{aligned}
 $$
 
-where the last equality holds because every one of the $k$ terms being maximized over is, by construction, the *same* scalar quantity — the row index $j$ only labels which weight vector we call $u$, the constraint set $\{\|u\|_2\le B_1\}$ and the data $x_1,\ldots,x_m$ being identical for every hidden unit. This collapses a $k$-fold maximum into a single scalar supremum, over a class with a single $B_1$-norm-bounded weight vector. Taking $\mathbb{E}_\sigma$ of both sides and recalling that $g$ is $1$-Lipschitz with $g(0)=0$, the contraction lemma (Lemma 5a.2, in the unsigned-but-$\phi(0){=}0$ form noted there) now applies validly — because it is invoked *after* the maximum has collapsed to a single scalar class, not pointwise inside a supremum over $k$ simultaneously varying rows:
+where the last equality holds because every one of the $k$ terms being maximized over is, by construction, the *same* scalar quantity — the row index $j$ only labels which weight vector we call $u$, the constraint set $\{\|u\|_2\le B_1\}$ and the data $x_1,\ldots,x_m$ being identical for every hidden unit. This collapses a $k$-fold maximum into a single scalar supremum, over a class with a single $B_1$-norm-bounded weight vector. The supremum is of an absolute value, so the contraction lemma enters in its signed form (5a.1) of Chapter 5a, which applies because the set $\{(u^\top x_1,\ldots,u^\top x_m) : \|u\|_2 \leq B_1\}$ contains $0$ and $g(0) = 0$; it costs a factor $2$:
 
-$$\mathbb{E}_\sigma\Big[\sup_{\|u\|_2 \leq B_1} \Big|\sum_i \sigma_i\, g(u^\top x_i)\Big|\Big] \leq \mathbb{E}_\sigma\Big[\sup_{\|u\|_2 \leq B_1} \Big|\sum_i \sigma_i\, u^\top x_i\Big|\Big] = B_1\, \mathbb{E}_\sigma\Big[\Big\|\sum_i \sigma_i x_i\Big\|_2\Big],$$
+$$\mathbb{E}_\sigma\Big[\sup_{\|u\|_2 \leq B_1} \Big|\sum_i \sigma_i\, g(u^\top x_i)\Big|\Big] \leq 2\,\mathbb{E}_\sigma\Big[\sup_{\|u\|_2 \leq B_1} \sum_i \sigma_i\, u^\top x_i\Big] = 2B_1\, \mathbb{E}_\sigma\Big[\Big\|\sum_i \sigma_i x_i\Big\|_2\Big],$$
 
 the last equality by Cauchy-Schwarz. Finally, by Jensen's inequality and $\mathbb{E}[\sigma_i\sigma_{i'}]=0$ for $i\neq i'$,
 
 $$\mathbb{E}_\sigma\Big[\Big\|\sum_i \sigma_i x_i\Big\|_2\Big] \leq \sqrt{\mathbb{E}_\sigma\Big[\Big\|\sum_i \sigma_i x_i\Big\|_2^2\Big]} = \sqrt{\sum_i \|x_i\|_2^2} \leq R\sqrt{m}.$$
 
-Assembling the pieces, $\widehat{\mathfrak{R}}_S(\mathcal{H}_{k,B_1,B_2}) \leq \frac{B_2}{m}\cdot \sqrt{k}\,B_1 \cdot R\sqrt{m} = \frac{\sqrt{k}\,B_1B_2 R}{\sqrt{m}}$. $\square$
+Assembling the pieces, $\widehat{\mathfrak{R}}_S(\mathcal{H}_{k,B_1,B_2}) \leq \frac{B_2}{m}\cdot \sqrt{k}\cdot 2B_1 \cdot R\sqrt{m} = \frac{2\sqrt{k}\,B_1B_2 R}{\sqrt{m}}$. $\square$
 
 **Consequences.** Plugging Theorem 8.1 into Theorem 5a.2 (after one more application of the contraction lemma to pass from $\mathcal{H}_{k,B_1,B_2}$ to a Lipschitz loss composed with it) gives, with probability at least $1-\delta$, simultaneously for every $h \in \mathcal{H}_{k,B_1,B_2}$,
 
@@ -497,8 +497,57 @@ $$R(h) \leq \widehat{R}_S(h) + O\Big(\frac{\sqrt{k}\, B_1 B_2 R}{\sqrt{m}}\Big) 
 Three things are worth noting about this bound:
 
 * It **does not depend on the input dimension $d$** — only on the per-neuron weight-norm bound $B_1$, the output-norm bound $B_2$, the data-norm bound $R$, and the width $k$. This is precisely the phenomenon flagged in Theorem 5a.4: capacity control by norm, rather than by counting parameters, is what makes the bound meaningful for models with far more parameters than $VC$-dimension arguments could ever tolerate.
-* It scales with $\sqrt{k}$, not with the number of parameters $k(d+1)$. Width still costs something — but far less than a naive parameter-counting argument (à la Theorem 5.4) would suggest, and this residual $\sqrt k$ is itself an artifact of the crude row-independent decomposition step above; sharper arguments based on matrix covering numbers (Golowich, Rakhlin & Shamir, 2018) remove even this factor, at the cost of machinery beyond this course's scope.
-* The bound gives no credit to gradient descent for finding a good hypothesis — it only certifies that *if* training happens to land on a hypothesis with small weight norms, that hypothesis generalizes well. This matches an empirical regularity of trained networks: gradient descent on over-parameterized networks tends to find solutions with small weight norms even without explicit regularization, an implicit-bias phenomenon that is an active research topic and, again, outside our scope — but it is exactly why this norm-based, width-independent view of capacity, rather than the VC-dimension view, is the one that matches practice. We revisit this network in a further-simplified, exactly solvable form — where only the output layer is trained and the hidden layer is fixed — in the Neural Tangent Kernel discussion of Chapter 9.
+* It scales with $\sqrt{k}$, not with the number of parameters $k(d+1)$. Width still costs something — but far less than a naive parameter-counting argument (à la Theorem 5.4) would suggest. This residual $\sqrt k$ is an *artifact of the $L_2$ constraint* on the output weights: Theorem 8.2 below shows that it disappears once the output weights are constrained in the $L_1$ norm instead.
+
+* The bound gives no credit to gradient descent for finding a good hypothesis — it only certifies that *if* training happens to land on a hypothesis with small weight norms, that hypothesis generalizes well. This matches an empirical regularity of trained networks: gradient descent on over-parameterized networks tends to find solutions with small weight norms even without explicit regularization, an implicit-bias phenomenon that is an active research topic — and it is exactly why this norm-based, width-independent view of capacity, rather than the VC-dimension view, is the one that matches practice. We revisit this network in a further-simplified, exactly solvable form — where only the output layer is trained and the hidden layer is fixed — in the Neural Tangent Kernel discussion of Chapter 9.
+
+**Theorem 8.2 (Width-independent bound for an $L_1$-constrained output layer).** In the same setup as Theorem 8.1 — $g$ $1$-Lipschitz with $g(0)=0$, $\|w_j^{(1)}\|_2 \leq B_1$ per hidden unit, $\|x\|_2 \leq R$ — replace the output constraint $\|w\|_2 \leq B_2$ by
+$$\|w\|_1 := \sum_{j=1}^k |w_j| \;\leq\; B_2,$$
+and write $\mathcal{H}^{(1)}_{k,B_1,B_2}$ for the resulting class. Then for every sample $S$,
+$$\widehat{\mathfrak{R}}_S\big(\mathcal{H}^{(1)}_{k,B_1,B_2}\big) \;\leq\; \frac{2B_1 B_2 R}{\sqrt{m}},$$
+with **no dependence on the width $k$** on the right-hand side.
+
+**Proof.** Fix the signs $\sigma$ and abbreviate $c(u) := \frac1m\sum_{i=1}^m \sigma_i\, g(u^\top x_i)$ for the correlation of a single hidden unit $u$. A hypothesis restricted to $S$ is the vector $\big(\sum_j w_j g(w_j^{(1)\top}x_i)\big)_{i=1}^m$, so
+$$\sup_{W,w} \frac1m \sum_{i=1}^m \sigma_i h_{W,w}(x_i) \;=\; \sup_{W,w} \sum_{j=1}^k w_j\, c\big(w_j^{(1)}\big) \;\leq\; \sup_{W,w} \sum_{j=1}^k |w_j|\, \big|c\big(w_j^{(1)}\big)\big| \;\leq\; \Big(\sum_{j=1}^k |w_j|\Big)\, \sup_{\|u\|_2 \leq B_1} |c(u)| \;\leq\; B_2 \sup_{\|u\|_2 \leq B_1} |c(u)|,$$
+where the second inequality pulls the total $L_1$ mass out of the sum, and the third applies the constraint. The point is that the sup over $W$ of the individual correlations $\lvert c(w_j^{(1)})\rvert$ collapses to a single scalar supremum, exactly as in Theorem 8.1's proof — the row index $j$ labels identical constraint sets, so maximizing the weighted sum with an $L_1$ budget puts all mass on the single best hidden unit (a vertex of the $L_1$ ball). Taking $\mathbb{E}_\sigma$ and applying the same chain as in Theorem 8.1's proof (signed contraction (5a.1) for the $1$-Lipschitz $g$ with $g(0)=0$, Cauchy-Schwarz, Jensen) gives
+$$\widehat{\mathfrak{R}}_S\big(\mathcal{H}^{(1)}_{k,B_1,B_2}\big) \;\leq\; B_2\, \mathbb{E}_\sigma\Big[\sup_{\|u\|_2 \leq B_1} \big|c(u)\big|\Big] \;\leq\; B_2\cdot\frac{2B_1 R\sqrt{m}}{m} \;=\; \frac{2B_1 B_2 R}{\sqrt{m}}. \qquad\square$$
+
+Bounds of this type, in which the size of the weights rather than the size of the network controls capacity, go back to [Bartlett (1998)](https://doi.org/10.1109/18.661502)<!-- cite: bartlett1998sample | article | author={Bartlett, Peter L.}; title={The Sample Complexity of Pattern Classification with Neural Networks: The Size of the Weights Is More Important than the Size of the Network}; journal={IEEE Transactions on Information Theory}; year={1998}; volume={44}; number={2}; pages={525--536} -->. The comparison between Theorems 8.1 and 8.2 is the cleanest illustration of **Theorem 5a.9's moral in action**. The $\sqrt k$ in Theorem 8.1 is precisely the cost of the $L_2$ constraint, measured in $L_1$ terms: by norm equivalence $\|w\|_1 \leq \sqrt{k}\,\|w\|_2$, an $L_2$-constrained network has total output weight at most $\sqrt k\,B_2$, and Theorem 8.2 charges exactly that total — so Theorem 8.1 is recovered by norm conversion. Conversely, the $L_1$ form shows that the width is a *bookkeeping device*: the class of $L_1$-constrained combinations is no richer, in Rademacher terms, than the class of its single hidden units (scaled by the budget $B_2$), no matter how large $k$ is. The same accounting by total weight underlies the gradient-boosting guarantee of Chapter 10: the price of an ensemble is its total weight, not its member count. Both theorems still constrain each hidden unit separately; the refinement of Golowich, Rakhlin & Shamir (2018) extends the accounting to norms of the hidden weight matrices, and to deeper networks.
+
+**Why does SGD generalize?** The bounds of this section are *capacity-based*: they certify any low-norm hypothesis the training run happens to land on, and give the training algorithm no credit. A complementary analysis prices the algorithm itself, through **uniform stability** (Definition 5a.3 and Theorem 5a.10 of Chapter 5a). We carry it out for SGD with single-example updates on a loss $\phi(w,z)$ that is convex in the parameters $w \in \mathbb{R}^p$ — for instance logistic regression (Chapter 3), or a network whose hidden layer is frozen and only the output layer is trained. Two properties of smooth functions are needed. A differentiable $f:\mathbb{R}^p\to\mathbb{R}$ is **$\beta$-smooth** if its gradient is $\beta$-Lipschitz, $\|\nabla f(u) - \nabla f(v)\|_2 \leq \beta\|u-v\|_2$.
+
+**Lemma 8.1 (Smooth convex functions).** Let $f$ be $\beta$-smooth. Then for all $u,v$:
+
+*(i)* $f(v) \leq f(u) + \nabla f(u)^\top(v-u) + \frac\beta2\|v-u\|_2^2$;
+
+*(ii)* if $f$ is also convex, $\big(\nabla f(u) - \nabla f(v)\big)^\top(u-v) \geq \frac1\beta\|\nabla f(u) - \nabla f(v)\|_2^2$;
+
+*(iii)* if $f$ is also convex and $0 < \alpha \leq 2/\beta$, the gradient step $G(u) := u - \alpha\nabla f(u)$ satisfies $\|G(u) - G(v)\|_2 \leq \|u - v\|_2$.
+
+**Proof.** *(i)* By the fundamental theorem of calculus along the segment from $u$ to $v$, Cauchy-Schwarz and smoothness,
+$$f(v) - f(u) - \nabla f(u)^\top(v-u) = \int_0^1\big(\nabla f(u + t(v-u)) - \nabla f(u)\big)^\top(v-u)\,dt \;\leq\; \int_0^1 \beta t\,\|v-u\|_2^2\,dt = \frac\beta2\|v-u\|_2^2.$$
+*(ii)* Fix $u$ and let $\psi(y) := f(y) - \nabla f(u)^\top y$. It is convex and $\beta$-smooth with $\nabla\psi(u) = 0$, so $u$ minimizes $\psi$. Applying (i) to $\psi$ at the point $y - \frac1\beta\nabla\psi(y)$,
+$$\psi(u) \;\leq\; \psi\big(y - \tfrac1\beta\nabla\psi(y)\big) \;\leq\; \psi(y) - \tfrac1\beta\|\nabla\psi(y)\|_2^2 + \tfrac{1}{2\beta}\|\nabla\psi(y)\|_2^2 = \psi(y) - \tfrac{1}{2\beta}\|\nabla f(y) - \nabla f(u)\|_2^2.$$
+Written out, $f(u) \leq f(y) + \nabla f(u)^\top(u - y) - \frac1{2\beta}\|\nabla f(y) - \nabla f(u)\|_2^2$. Adding this inequality to the same one with $u$ and $y$ exchanged, and setting $y = v$, gives (ii).
+
+*(iii)* Expanding the square and using (ii),
+$$\|G(u)-G(v)\|_2^2 = \|u-v\|_2^2 - 2\alpha\big(\nabla f(u)-\nabla f(v)\big)^\top(u-v) + \alpha^2\|\nabla f(u)-\nabla f(v)\|_2^2 \;\leq\; \|u-v\|_2^2 - \alpha\Big(\frac2\beta - \alpha\Big)\|\nabla f(u)-\nabla f(v)\|_2^2,$$
+and the last term is non-positive for $\alpha \leq 2/\beta$ $\square$
+
+All three facts are standard in convex optimization; see Chapter 2 of [Nesterov (2004)](https://doi.org/10.1007/978-1-4419-8853-9)<!-- cite: nesterov2004introductory | book | author={Nesterov, Yurii}; title={Introductory Lectures on Convex Optimization: A Basic Course}; publisher={Springer}; year={2004} -->.
+
+**Theorem 8.3 (SGD is uniformly stable).** Let $\phi(w,z)$ be convex and $\beta$-smooth in $w$, with $\|\nabla_w\phi(w,z)\|_2 \leq G$ for all $w,z$. Given $S = (z_1,\ldots,z_m)$, let SGD start from a fixed $w_0$, draw $i_t$ uniformly from $[m]$ independently at each step, and update
+$$w_{t+1} := w_t - \alpha_t\nabla_w\phi(w_t,z_{i_t}), \qquad 0 < \alpha_t \leq 2/\beta, \qquad t = 0,\ldots,T-1.$$
+The algorithm that returns $w_T$ is $\epsilon$-uniformly stable with
+$$\epsilon \;=\; \frac{2G^2}{m}\sum_{t=0}^{T-1}\alpha_t.$$
+
+**Proof.** Let $S'$ differ from $S$ in position $i$ only, and run SGD on both with the **same** index sequence $i_0,i_1,\ldots$; this coupling does not change the law of either run. Let $w_t, w_t'$ be the two iterates and $\delta_t := \|w_t - w_t'\|_2$, so $\delta_0 = 0$. If $i_t \neq i$, both runs apply the gradient step of the *same* function $\phi(\cdot,z_{i_t})$, and Lemma 8.1(iii) gives $\delta_{t+1} \leq \delta_t$. If $i_t = i$, the triangle inequality and the gradient bound give $\delta_{t+1} \leq \delta_t + \alpha_t\|\nabla_w\phi(w_t,z_i)\|_2 + \alpha_t\|\nabla_w\phi(w_t',z_i')\|_2 \leq \delta_t + 2\alpha_t G$. The second case occurs with probability $\tfrac1m$, independently of $\delta_t$, so
+$$\mathbb{E}[\delta_{t+1}] \;\leq\; \mathbb{E}[\delta_t] + \frac{2\alpha_t G}{m}, \qquad\text{hence}\qquad \mathbb{E}[\delta_T] \leq \frac{2G}{m}\sum_{t<T}\alpha_t.$$
+The gradient bound makes $\phi(\cdot,z)$ $G$-Lipschitz, so for every $z$, $\big|\mathbb{E}\,\phi(w_T,z) - \mathbb{E}\,\phi(w_T',z)\big| \leq G\,\mathbb{E}[\delta_T]$ $\square$
+
+Plugging Theorem 8.3 into Theorem 5a.10 bounds the generalization gap of the *iterate SGD actually returns*, with no complexity term:
+$$\mathbb{E}_S\mathbb{E}_{\text{SGD}}\big[R(w_T) - \widehat{R}_S(w_T)\big] \;\leq\; \frac{2G^2}{m}\sum_{t<T}\alpha_t.$$
+The bound grows with the number of steps: running longer lowers the training loss but raises the stability parameter, an optimization–generalization trade-off expressed entirely through the step sizes. One pass over the data ($T = m$) with constant step $\alpha = c/\sqrt m$ gives a gap of at most $2cG^2/\sqrt m$. The result is due to [Hardt, Recht & Singer (2016)](https://proceedings.mlr.press/v48/hardt16.html)<!-- cite: hardt2016train | inproceedings | author={Hardt, Moritz and Recht, Benjamin and Singer, Yoram}; title={Train Faster, Generalize Better: Stability of Stochastic Gradient Descent}; booktitle={Proceedings of the 33rd International Conference on Machine Learning}; series={PMLR}; volume={48}; year={2016}; pages={1225--1234} -->, who also treat strongly convex losses, where the gap is $O(1/m)$ uniformly in $T$, and non-convex smooth losses, where it grows polynomially in $T$. Convexity enters the proof only through Lemma 8.1(iii); for a full network trained end to end it fails, and neither the capacity nor the stability analysis is sharp — the two are complementary partial explanations of why over-parameterized networks generalize.
 
 Nearly every neural network used nowadays is trained by minimizing a loss function using stochastic gradient descent with backpropagation. The common practice is to use an automatic differentiation library such as TensorFlow or PyTorch that automates the process of calculating the gradients. These libraries also provide a variety of neural network architectures and optimization algorithms. Below, we give an example implementation of a neural network using PyTorch on a handwritten digit classification problem. The data set used is among the most famous data sets in machine learning, called MNIST. It contains 70,000 images of handwritten digits. Each image is a 28x28 grayscale image. The goal is to classify the images into 10 classes, one for each digit.
 
