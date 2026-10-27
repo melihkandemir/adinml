@@ -28,7 +28,7 @@ $$
 \end{aligned}
 $$
 
-Unsurprisingly, the MLE of a Bernoulli parameter is simply the observed frequency of heads, i.e. the sample mean of $S$. This is the estimator we implicitly used throughout Chapter 4 whenever we wrote $\widehat\mu_m$ for a sample of Bernoulli random variables.
+Unsurprisingly, the MLE of a Bernoulli parameter is simply the observed frequency of heads, i.e. the sample mean of $S$. This is the estimator we implicitly used throughout Chapter 5 whenever we wrote $\widehat\mu_m$ for a sample of Bernoulli random variables.
 
 # Bayesian Learning
 
@@ -113,13 +113,13 @@ for some function $f$ and probability density $p(x)$ (with the integral replaced
 
 $$I \approx \frac{1}{m}\sum_{i=1}^m f(x_i).$$
 
-This is called **Monte Carlo integration**. By the weak law of large numbers (Chapter 4), this approximation is consistent: it converges to $I$ as $m \to \infty$.
+This is called **Monte Carlo integration**. By the weak law of large numbers (Chapter 5), this approximation is consistent: it converges to $I$ as $m \to \infty$.
 
 # Generative Models
 
-Consider a supervised learning problem with $(x,y) \sim \mathcal{D}$ for an unknown data distribution $\mathcal{D}$. Take the label $y$ to be discrete and the features $x$ to be continuous, so that — following the convention of Chapter 1 — the joint object is written $p(x,y)$ while its discrete factors are written with a capital $P$. There are two ways to factorize $p(x,y)$, and each suggests a different modeling strategy:
+Consider a supervised learning problem with $(x,y) \sim \mathcal{D}$ for an unknown data distribution $\mathcal{D}$. Take the label $y$ to be discrete and the features $x$ to be continuous, so that — following the convention of Chapter 2 — the joint object is written $p(x,y)$ while its discrete factors are written with a capital $P$. There are two ways to factorize $p(x,y)$, and each suggests a different modeling strategy:
 
-* $p(x,y) = P(y \mid x)\,p(x)$: model $P(y \mid x)$ directly and treat $p(x)$, the distribution of inputs alone, as something not worth modeling (it enters our formulas only as the distribution we average over — the same "average it out" treatment we gave the label in the marginal $\mathcal{D}_{\mathcal{X}}$ of Chapter 1; when it does appear, it can be approximated by Monte Carlo integration on the training inputs). This is called **discriminative modeling** — the logistic regression model of Chapter 3 is an example.
+* $p(x,y) = P(y \mid x)\,p(x)$: model $P(y \mid x)$ directly and treat $p(x)$, the distribution of inputs alone, as a quantity not worth modeling (it enters our formulas only as the distribution we average over — the same "average it out" treatment we gave the label in the marginal $\mathcal{D}_{\mathcal{X}}$ of Chapter 2; when it does appear, it can be approximated by Monte Carlo integration on the training inputs). This is called **discriminative modeling** — the logistic regression model of Chapter 4 is an example.
 * $p(x,y) = p(x \mid y)\,P(y)$: model both $P(y)$ and $p(x \mid y)$, i.e. infer the whole data-generating process where a label is chosen first and the corresponding input is generated conditioned on it. This is called **generative modeling**.
 
 ## Example: a generative Bernoulli classifier
@@ -131,7 +131,7 @@ y \sim \mathrm{Bernoulli}(\pi), \\
 x \mid y \sim \mathrm{Bernoulli}(\theta_y),
 \end{gathered}$$
 
-so $\pi$ is the marginal probability of $y=1$, and $\theta_0, \theta_1$ are the class-conditional probabilities that $x=1$ given $y=0$ and $y=1$ respectively. Given $S = \{(x_i,y_i)\}_{i=1}^m$, all three parameters are Bernoulli parameters and each is fit by the MLE recipe derived above, applied to the relevant subset of the data:
+so $\pi$ is the marginal probability of $y=1$, and $\theta_0, \theta_1$ are the class-conditional probabilities that $x=1$ given $y=0$ and $y=1$ respectively. Given $S = \{(x_i,y_i)\}_{i=1}^m$, all three parameters are Bernoulli parameters and each is fit by the MLE formula derived above, applied to the relevant subset of the data:
 
 $$\begin{gathered}
 \widehat\pi = \frac{1}{m}\sum_{i=1}^m \mathds{1}(y_i{=}1), \\
@@ -166,9 +166,9 @@ together with the class prior $\widehat\pi_c = m_c / m$. Given a query $x_*$, th
 
 $$\widehat{y} = \arg\max_{c \in [C]} \widehat\pi_c \prod_{j=1}^d \widehat\theta_{j,c}^{\,x_{*j}} (1-\widehat\theta_{j,c})^{1-x_{*j}}.$$
 
-The total number of estimated parameters is $O(Cd)$ — linear in the number of features, in stark contrast to the exponential table size of the unrestricted model. This tabular form generalizes to categorical (non-binary) features and to continuous features (e.g. via a per-class Gaussian $p(x_j \mid y{=}c) = \mathcal{N}(x_j \mid \mu_{j,c}, \sigma_{j,c}^2)$) by the same recipe, replacing the Bernoulli MLE with the MLE of the chosen per-feature family.
+The total number of estimated parameters is $O(Cd)$ — linear in the number of features, in stark contrast to the exponential table size of the unrestricted model. This tabular form generalizes to categorical (non-binary) features and to continuous features (e.g. via a per-class Gaussian $p(x_j \mid y{=}c) = \mathcal{N}(x_j \mid \mu_{j,c}, \sigma_{j,c}^2)$) by the same procedure, replacing the Bernoulli MLE with the MLE of the chosen per-feature family.
 
-**PAC analysis of Naive Bayes.** Since every one of the $\widehat\theta_{j,c}$ (and $\widehat\pi_c$) is a Bernoulli-parameter MLE — a sample mean of a $\{0,1\}$-valued quantity — Hoeffding's inequality (Theorem 4.4) applies to each of them individually. We have $K = Cd$ such parameters $\widehat\theta_{j,c}$. Conditionally on the labels $y_1,\ldots,y_m$, the estimate $\widehat\theta_{j,c}$ is an average of $m_c$ i.i.d. $\{0,1\}$-valued variables, so Hoeffding's inequality bounds each of its two tails by $e^{-2m_c\epsilon^2} \leq e^{-2m_{\min}\epsilon^2}$, and the union bound over the $2Cd$ one-sided events — the argument of the uniform Hoeffding bound, Theorem 4.5, with sample sizes $m_c \geq m_{\min}$ — gives
+**PAC analysis of Naive Bayes.** Since every one of the $\widehat\theta_{j,c}$ (and $\widehat\pi_c$) is a Bernoulli-parameter MLE — a sample mean of a $\{0,1\}$-valued quantity — Hoeffding's inequality (Theorem 5.6.5) applies to each of them individually. We have $K = Cd$ such parameters $\widehat\theta_{j,c}$. Conditionally on the labels $y_1,\ldots,y_m$, the estimate $\widehat\theta_{j,c}$ is an average of $m_c$ i.i.d. $\{0,1\}$-valued variables, so Hoeffding's inequality bounds each of its two tails by $e^{-2m_c\epsilon^2} \leq e^{-2m_{\min}\epsilon^2}$, and the union bound over the $2Cd$ one-sided events — the argument of the uniform Hoeffding bound, Theorem 5.6.6, with sample sizes $m_c \geq m_{\min}$ — gives
 
 $$P\Big(\exists (j,c) \in [d]\times[C] : |\widehat\theta_{j,c} - \theta_{j,c}| \geq \epsilon\Big) \leq 2\, C d \, e^{-2 m_{\min} \epsilon^2},$$
 
@@ -247,4 +247,4 @@ print(f"Naive Bayes test accuracy:  {test_acc:.3f}")
     Naive Bayes train accuracy: 0.910
     Naive Bayes test accuracy:  0.918
 
-Despite the crudeness of median binarization (which discards all information about *how far* a measurement is from the median) and the naive independence assumption across all $30$ features, the classifier reaches over $90\%$ test accuracy with a training procedure that is nothing more than counting — no gradient descent, no iterative optimization, just the closed-form MLE/MAP formulas of this chapter applied once per class.
+Despite the crudeness of median binarization (which discards all information about *how far* a measurement is from the median) and the naive independence assumption across all $30$ features, the classifier reaches over $90\%$ test accuracy with a training procedure that amounts to frequency counting — no gradient descent, no iterative optimization, just the closed-form MLE/MAP formulas of this chapter applied once per class.

@@ -1,4 +1,4 @@
-This chapter builds the probabilistic machinery the rest of the course runs on. The notational conventions it uses were fixed in Chapter 1 and are assumed throughout.
+This chapter builds the probabilistic machinery the rest of the course runs on. The notational conventions it uses were fixed in Chapter 2 and are assumed throughout.
 
 # Measure-Theoretic Foundations
 
@@ -56,7 +56,7 @@ Here:
 * $P(H_i \mid \mathcal{D})$ is our **posterior belief** in $H_i$ after observing the data $\mathcal{D}$,
 * $P(\mathcal{D} \mid H_i)$ is the **likelihood** of $H_i$, and $P(\mathcal{D})$ is the **evidence**.
 
-This gives a general recipe for statistical inference: start with a prior belief, collect observations, update the belief. Chapter 6 builds an entire class of learning algorithms on exactly this recipe.
+This gives a general procedure for statistical inference: start with a prior belief, collect observations, update the belief. Chapter 8 builds an entire class of learning algorithms on exactly this procedure.
 
 # Random Variables
 
@@ -70,7 +70,7 @@ X^{-1}(A) := \{\omega \in \Omega : X(\omega) \in A\} \in \mathcal{F}, \\
 
 ---
 
-Measurability is exactly the condition needed for the expression "$P(X \in A)$" to make sense: it guarantees that the set of outcomes $\omega$ mapping into $A$ is itself an event, i.e. something $P$ can be evaluated on. Given this, we define the **induced probability measure** (a.k.a. the **law** or **distribution**) of $X$ as
+Measurability is exactly the condition needed for the expression "$P(X \in A)$" to make sense: it guarantees that the set of outcomes $\omega$ mapping into $A$ is itself an event, i.e. an event to which $P$ can assign a probability. Given this, we define the **induced probability measure** (a.k.a. the **law** or **distribution**) of $X$ as
 $$\begin{gathered}
 P_X(A) := P(X^{-1}(A)) = P(\{\omega \in \Omega: X(\omega) \in A\}), \\
 A \in \mathcal{G}.
@@ -83,7 +83,7 @@ $$\begin{gathered}
 P(X = x) := P_X(\{x\}) = P(\{\omega \in \Omega: X(\omega) = x\}), \\
 x \in \Lambda.
 \end{gathered}$$
-This is called the **probability mass function (pmf)** of $X$, and $P_X(A) = \sum_{x \in A} P(X=x)$ recovers the measure on any event $A$. Note that we write a pmf with a **capital** $P$, because it *is* the probability of the event $\{X=x\}$ — no new object is being introduced. Lowercase $p$ is reserved, throughout these notes, for the densities of continuous random variables defined next, which are **not** probabilities of anything.
+This is called the **probability mass function (pmf)** of $X$, and $P_X(A) = \sum_{x \in A} P(X=x)$ recovers the measure on any event $A$. Note that we write a pmf with a **capital** $P$, because it *is* the probability of the event $\{X=x\}$ — no new object is being introduced. Lowercase $p$ is reserved, throughout these notes, for the densities of continuous random variables defined next, which are **not** probabilities of any event.
 
 **Continuous random variables.** When $\Lambda = \mathbb{R}^k$, singletons typically carry zero probability ($P_X(\{x\}) = 0$), so a pmf is useless; instead we ask for $P_X$ to be absolutely continuous with respect to the Lebesgue measure $\mu_{\text{Leb}}$ (ordinary $k$-dimensional volume). This means there exists a function $p_X \geq 0$, called the **probability density function (pdf)**, such that
 $$\begin{gathered}
@@ -163,7 +163,7 @@ By contrast, the sample variance $\widehat{\sigma}_m^2 := \frac{1}{m}\sum_{i=1}^
 
 # Concentration of Measure Inequalities
 
-**Theorem 4.1 (Markov's inequality).** Let $X$ be a non-negative random variable. Then for any $\epsilon > 0$,
+**Theorem 5.6.1 (Markov's inequality).** Let $X$ be a non-negative random variable. Then for any $\epsilon > 0$,
 $$P(X \geq \epsilon) \leq \frac{\mathbb{E}[X]}{\epsilon}.$$
 
 **Proof.** Since $X \geq 0$, the pointwise inequality $X \geq \epsilon\, \mathds{1}(X \geq \epsilon)$ holds for every outcome: if $X < \epsilon$ the right side is $0 \leq X$, and if $X \geq \epsilon$ the right side is $\epsilon \leq X$. Taking expectations and using monotonicity and linearity of the integral,
@@ -174,13 +174,13 @@ Note how little the proof uses: only non-negativity and linearity. This is why M
 
 **Example.** Consider ten Bernoulli random variables $X_1,\ldots,X_{10}$ with $P(X_i=1)=P(X_i=0)=0.5$. Since $\mathbb{E}[\sum_{i=1}^{10}X_i]=5$, Markov's inequality only gives $P(\sum_{i=1}^{10}X_i \geq 3) \leq 5/3$, which exceeds 1 and is thus **vacuous**.
 
-**Theorem 4.2 (Chebyshev's inequality).** Let $X$ have finite mean $\mu$ and variance $\sigma^2$. Then for any $\epsilon > 0$,
+**Theorem 5.6.2 (Chebyshev's inequality).** Let $X$ have finite mean $\mu$ and variance $\sigma^2$. Then for any $\epsilon > 0$,
 $$P(|X-\mu| \geq \epsilon) \leq \frac{\sigma^2}{\epsilon^2}.$$
 
-**Proof.** The events $\{|X-\mu| \geq \epsilon\}$ and $\{(X-\mu)^2 \geq \epsilon^2\}$ are identical, since $u \mapsto u^2$ is increasing on $[0,\infty)$. The random variable $(X-\mu)^2$ is non-negative, so Theorem 4.1 applies to it with threshold $\epsilon^2$:
+**Proof.** The events $\{|X-\mu| \geq \epsilon\}$ and $\{(X-\mu)^2 \geq \epsilon^2\}$ are identical, since $u \mapsto u^2$ is increasing on $[0,\infty)$. The random variable $(X-\mu)^2$ is non-negative, so Theorem 5.6.1 applies to it with threshold $\epsilon^2$:
 $$P(|X-\mu| \geq \epsilon) = P\big((X-\mu)^2 \geq \epsilon^2\big) \leq \frac{\mathbb{E}[(X-\mu)^2]}{\epsilon^2} = \frac{\mathrm{Var}[X]}{\epsilon^2} = \frac{\sigma^2}{\epsilon^2}. \qquad\square$$
 
-This is the transformation trick announced above, in its simplest form: squaring turns a two-sided deviation into a non-negative quantity, and buys a factor $1/\epsilon$ over Markov by paying with the assumption of a finite second moment. Applying Markov to $e^{sX}$ instead of $(X-\mu)^2$ — the **Chernoff trick** — buys an *exponential* improvement, at the price of assuming a finite moment generating function; this is exactly the route Theorem 4.4 takes below.
+This is the transformation trick announced above, in its simplest form: squaring turns a two-sided deviation into a non-negative quantity, and improves on Markov by a factor $1/\epsilon$, at the cost of assuming a finite second moment. Applying Markov to $e^{sX}$ instead of $(X-\mu)^2$ — the **Chernoff trick** — yields an *exponential* improvement, at the price of assuming a finite moment generating function; this is exactly the route Theorem 5.6.5 takes below.
 
 Consider $S = \{X_1,\ldots,X_m\}$ i.i.d. Bernoulli with sample average $\widehat{\mu}_m$ as defined above. How much can $\widehat\mu_m$ deviate from $\mu$? Markov's inequality alone gives us
 
@@ -201,9 +201,9 @@ $$
 
 using $\mathrm{Var}[\sum_i X_i] = \sum_i \mathrm{Var}[X_i]$ for independent $X_i$ (second step) and $\mathrm{Var}[aX]=a^2\mathrm{Var}[X]$ for a constant $a$ (third step). This bound shrinks as $\Theta(1/m)$, giving the **weak law of large numbers**:
 
-**Theorem 4.3 (Weak law of large numbers).** Let $X_1,\ldots,X_m$ be i.i.d. with finite mean $\mu$ and variance $\sigma^2$. Then for any $\epsilon > 0$, $\lim_{m\to\infty} P(|\widehat{\mu}_m - \mu| \geq \epsilon) = 0$, where $\widehat{\mu}_m = \frac{1}{m}\sum_{i=1}^m X_i$.
+**Theorem 5.6.3 (Weak law of large numbers).** Let $X_1,\ldots,X_m$ be i.i.d. with finite mean $\mu$ and variance $\sigma^2$. Then for any $\epsilon > 0$, $\lim_{m\to\infty} P(|\widehat{\mu}_m - \mu| \geq \epsilon) = 0$, where $\widehat{\mu}_m = \frac{1}{m}\sum_{i=1}^m X_i$.
 
-**Proof.** $\widehat\mu_m$ is unbiased, $\mathbb{E}[\widehat\mu_m] = \mu$, and the display preceding this theorem computed $\mathrm{Var}[\widehat\mu_m] = \sigma^2/m$. Chebyshev's inequality (Theorem 4.2) applied to $\widehat\mu_m$ therefore gives
+**Proof.** $\widehat\mu_m$ is unbiased, $\mathbb{E}[\widehat\mu_m] = \mu$, and the display preceding this theorem computed $\mathrm{Var}[\widehat\mu_m] = \sigma^2/m$. Chebyshev's inequality (Theorem 5.6.2) applied to $\widehat\mu_m$ therefore gives
 $$0 \leq P\big(|\widehat\mu_m - \mu| \geq \epsilon\big) \leq \frac{\sigma^2}{m\epsilon^2} \xrightarrow[m\to\infty]{} 0$$
 for every fixed $\epsilon > 0$, and the claim follows by squeezing $\square$
 
@@ -217,7 +217,7 @@ Chebyshev's inequality gets tighter at the polynomial rate $1/m$. Boundedness le
 
 The device is the **Chernoff trick**: instead of applying Markov's inequality to $X$ or to $(X-\mu)^2$, apply it to $e^{sX}$ for a free parameter $s>0$, then optimize over $s$. What makes this profitable is that the exponential turns a sum of independent variables into a *product* of expectations, and that each factor can be bounded using boundedness alone. The latter is the content of the following lemma.
 
-**Lemma 4.1 (Hoeffding's lemma).** Let $X$ be a random variable with $\mathbb{E}[X]=0$ and $P(a \leq X \leq b)=1$. Then for every $s \in \mathbb{R}$,
+**Lemma 5.6.4 (Hoeffding's lemma).** Let $X$ be a random variable with $\mathbb{E}[X]=0$ and $P(a \leq X \leq b)=1$. Then for every $s \in \mathbb{R}$,
 $$\mathbb{E}\big[e^{sX}\big] \leq \exp\Big(\frac{s^2(b-a)^2}{8}\Big).$$
 
 **Proof.** Note $a \leq 0 \leq b$, since $\mathbb{E}[X]=0$. Because $u \mapsto e^{su}$ is convex, every $x \in [a,b]$, written as the convex combination $x = \lambda b + (1-\lambda) a$ with $\lambda = \frac{x-a}{b-a}$, satisfies
@@ -239,10 +239,10 @@ $$\begin{gathered}
 \end{gathered}$$
 Hence $\varphi(0)=0$, $\varphi'(0)=0$, and $\varphi''(u) \leq \tfrac14$ everywhere, since $q(1-q) \leq \tfrac14$ for $q \in [0,1]$. Taylor's theorem with Lagrange remainder around $0$ therefore gives $\varphi(u) = \tfrac12\varphi''(\xi)u^2 \leq u^2/8$ for some $\xi$ between $0$ and $u$. Substituting back $u = s(b-a)$ completes the proof $\square$
 
-**Theorem 4.4 (Hoeffding's inequality).** Let $X_1,\ldots,X_m$ be independent random variables such that $P(a_i \leq X_i \leq b_i)=1$ for all $i$. Then for any $\epsilon>0$,
+**Theorem 5.6.5 (Hoeffding's inequality).** Let $X_1,\ldots,X_m$ be independent random variables such that $P(a_i \leq X_i \leq b_i)=1$ for all $i$. Then for any $\epsilon>0$,
 $$P\Big(\frac{1}{m}\sum_{i=1}^m X_i - \mathbb{E} \Big[\frac{1}{m}\sum_{i=1}^m X_i\Big] \geq \epsilon\Big) \leq \exp\Big(\frac{-2m^2\epsilon^2}{\sum_{i=1}^m(b_i-a_i)^2}\Big).$$
 
-**Proof.** Center the variables, $Y_i := X_i - \mathbb{E}[X_i]$, so that $\mathbb{E}[Y_i]=0$ and $Y_i$ lies in an interval of the same width $b_i-a_i$. For any $s>0$, the map $u \mapsto e^{su}$ is increasing, so Markov's inequality (Theorem 4.1) applied to the non-negative variable $e^{s\sum_i Y_i}$ gives
+**Proof.** Center the variables, $Y_i := X_i - \mathbb{E}[X_i]$, so that $\mathbb{E}[Y_i]=0$ and $Y_i$ lies in an interval of the same width $b_i-a_i$. For any $s>0$, the map $u \mapsto e^{su}$ is increasing, so Markov's inequality (Theorem 5.6.1) applied to the non-negative variable $e^{s\sum_i Y_i}$ gives
 
 $$
 \begin{aligned}
@@ -252,13 +252,13 @@ P\Big(\sum_{i=1}^m Y_i \geq m\epsilon\Big) = P\Big(e^{s\sum_i Y_i} \geq e^{sm\ep
 \end{aligned}
 $$
 
-where the equality on the second line uses independence (the expectation of a product of independent variables factorizes) and the last step applies Lemma 4.1 to each $Y_i$ separately. The bound holds for every $s>0$, so we may take the best one. Writing $V := \sum_i (b_i-a_i)^2$, the exponent $-sm\epsilon + s^2 V/8$ is a convex quadratic in $s$, minimized at $s^* = 4m\epsilon/V > 0$, where its value is
+where the equality on the second line uses independence (the expectation of a product of independent variables factorizes) and the last step applies Lemma 5.6.4 to each $Y_i$ separately. The bound holds for every $s>0$, so we may take the best one. Writing $V := \sum_i (b_i-a_i)^2$, the exponent $-sm\epsilon + s^2 V/8$ is a convex quadratic in $s$, minimized at $s^* = 4m\epsilon/V > 0$, where its value is
 
 $$-\frac{4m^2\epsilon^2}{V} + \frac{2m^2\epsilon^2}{V} = -\frac{2m^2\epsilon^2}{V}.$$
 
 Substituting and dividing the event by $m$ gives the claim $\square$
 
-Applying Theorem 4.4 to the variables $-X_1,\ldots,-X_m$ (which lie in $[-b_i,-a_i]$, of the same width) bounds the opposite tail by the same quantity:
+Applying Theorem 5.6.5 to the variables $-X_1,\ldots,-X_m$ (which lie in $[-b_i,-a_i]$, of the same width) bounds the opposite tail by the same quantity:
 $$P\Big(\mathbb{E} \Big[\frac{1}{m}\sum_{i=1}^m X_i\Big] - \frac{1}{m}\sum_{i=1}^m X_i \geq \epsilon\Big) \leq \exp\Big(\frac{-2m^2\epsilon^2}{\sum_{i=1}^m(b_i-a_i)^2}\Big),$$
 and adding the two gives the two-sided version with an extra factor of $2$.
 
@@ -269,15 +269,15 @@ $$\begin{gathered}
 P\Big(\mu \geq \widehat\mu_m + \sqrt{\tfrac{\log(1/\delta)}{2m}}\Big) \leq \delta, \\
 \text{equivalently}\quad P\Big(\mu \leq \widehat\mu_m + \sqrt{\tfrac{\log(1/\delta)}{2m}}\Big) \geq 1-\delta.
 \end{gathered}$$
-Since we will later allocate $\mu$ to generalization performance and $\widehat\mu_m$ to training performance, it is this second, complementary form that we will reuse directly. Concentration inequalities of this form are called **generalization bounds**, and are the basis of statistical learning theory (Chapter 5).
+Since we will later allocate $\mu$ to generalization performance and $\widehat\mu_m$ to training performance, it is this second, complementary form that we will reuse directly. Concentration inequalities of this form are called **generalization bounds**, and are the basis of statistical learning theory (Chapter 6).
 
 ## Uniform Hoeffding bounds over several estimators
 
-A single Hoeffding bound controls the deviation of *one* empirical average from its mean. In machine learning we rarely evaluate a single quantity: we compare many hypotheses' training errors, or track several estimators built from ranges (loss scales) that differ from one another. We now extend Theorem 4.4 to this setting, using nothing more than the union bound.
+A single Hoeffding bound controls the deviation of *one* empirical average from its mean. In machine learning we rarely evaluate a single quantity: we compare many hypotheses' training errors, or track several estimators built from ranges (loss scales) that differ from one another. We now extend Theorem 5.6.5 to this setting, using only the union bound.
 
 **Setup.** Suppose we have $K$ estimators $\widehat\mu_m^{(1)}, \ldots, \widehat\mu_m^{(K)}$, where $\widehat\mu_m^{(k)} := \frac{1}{m}\sum_{i=1}^m X_i^{(k)}$ is built from $m$ independent observations $X_1^{(k)},\ldots,X_m^{(k)}$ (independent across $i$; the $K$ estimators themselves need not be independent of each other) with each $X_i^{(k)} \in [a_k, b_k]$, i.e. the $k$-th estimator's underlying random variable lives in its *own* interval, of its own width $b_k - a_k$. Write $\mu^{(k)} := \mathbb{E}[\widehat\mu_m^{(k)}]$.
 
-**Theorem 4.5 (Uniform Hoeffding bound).** For any $\epsilon_1,\ldots,\epsilon_K > 0$,
+**Theorem 5.6.6 (Uniform Hoeffding bound).** For any $\epsilon_1,\ldots,\epsilon_K > 0$,
 $$P\Big(\exists k \in [K] : \mu^{(k)} - \widehat\mu_m^{(k)} \geq \epsilon_k\Big) \leq \sum_{k=1}^K \exp\Big(\frac{-2m\epsilon_k^2}{(b_k-a_k)^2}\Big).$$
 In the special case $\epsilon_k \equiv \epsilon$ and $b_k - a_k \equiv (b-a)$ for all $k$ (a common range for every estimator), this simplifies to
 $$P\Big(\exists k \in [K] : \mu^{(k)} - \widehat\mu_m^{(k)} \geq \epsilon\Big) \leq K \exp\Big(\frac{-2m\epsilon^2}{(b-a)^2}\Big).$$
@@ -292,29 +292,29 @@ P\Big(\exists k \in [K]: \mu^{(k)} - \widehat\mu_m^{(k)} \geq \epsilon_k\Big) &=
 \end{aligned}
 $$
 
-where the first inequality is the union bound and the second applies Theorem 4.4 (in its lower-tail form) to each $B_k$ separately, using only the independence of $X_1^{(k)}, \ldots, X_m^{(k)}$ *within* estimator $k$ — no relationship between different estimators $k \neq k'$ is required. Note that the $m$ variables of estimator $k$ all lie in the same interval, so $\sum_{i=1}^m (b_k-a_k)^2 = m(b_k-a_k)^2$, which is what turns the $m^2$ in Theorem 4.4 into the $m$ above. $\square$
+where the first inequality is the union bound and the second applies Theorem 5.6.5 (in its lower-tail form) to each $B_k$ separately, using only the independence of $X_1^{(k)}, \ldots, X_m^{(k)}$ *within* estimator $k$ — no relationship between different estimators $k \neq k'$ is required. Note that the $m$ variables of estimator $k$ all lie in the same interval, so $\sum_{i=1}^m (b_k-a_k)^2 = m(b_k-a_k)^2$, which is what turns the $m^2$ in Theorem 5.6.5 into the $m$ above. $\square$
 
-**What this buys us.** Setting the right-hand side to a target confidence $\delta$ and solving for a common $\epsilon$ (in the equal-range case) gives $\epsilon = (b-a)\sqrt{\log(K/\delta)/(2m)}$, so that simultaneously, for every one of the $K$ estimators,
+**What this yields.** Setting the right-hand side to a target confidence $\delta$ and solving for a common $\epsilon$ (in the equal-range case) gives $\epsilon = (b-a)\sqrt{\log(K/\delta)/(2m)}$, so that simultaneously, for every one of the $K$ estimators,
 $$P\Big(\mu^{(k)} \leq \widehat\mu_m^{(k)} + (b-a)\sqrt{\tfrac{\log(K/\delta)}{2m}}, \ \forall k \in [K]\Big) \geq 1-\delta.$$
-Two consequences matter directly for what follows in Chapter 5:
+Two consequences matter directly for what follows in Chapter 6:
 
-* **Effect of the hypothesis class.** If each estimator $k$ corresponds to the training loss of a distinct hypothesis $h_k$ in a finite hypothesis class $\mathcal{H} = \{h_1,\ldots,h_K\}$, the bound degrades only logarithmically in $K = |\mathcal{H}|$ — a much larger hypothesis class costs comparatively little in confidence, but every additional hypothesis we simultaneously monitor must be paid for somewhere, and it is paid for here, inside the square root. This is the seed of the finite-hypothesis-class generalization bound proved in Chapter 5.
-* **Effect of loss scale.** If different hypotheses (or different loss functions) produce losses on different scales $[a_k,b_k]$, the *per-estimator* range $(b_k-a_k)$ enters the bound directly and linearly. A hypothesis whose loss can swing across a wide range is intrinsically harder to certify than one confined to a narrow range, even before we ask anything about the hypothesis class's size or structure — boundedness of the *loss*, not just of the sample, is doing real work.
+* **Effect of the hypothesis class.** If each estimator $k$ corresponds to the training loss of a distinct hypothesis $h_k$ in a finite hypothesis class $\mathcal{H} = \{h_1,\ldots,h_K\}$, the bound degrades only logarithmically in $K = |\mathcal{H}|$ — a much larger hypothesis class costs comparatively little in confidence, but every additional hypothesis we simultaneously monitor must be paid for somewhere, and it is paid for here, inside the square root. This is the seed of the finite-hypothesis-class generalization bound proved in Chapter 6.
+* **Effect of loss scale.** If different hypotheses (or different loss functions) produce losses on different scales $[a_k,b_k]$, the *per-estimator* range $(b_k-a_k)$ enters the bound directly and linearly. A hypothesis whose loss can swing across a wide range is intrinsically harder to certify than one confined to a narrow range, even before we ask anything about the hypothesis class's size or structure — boundedness of the *loss*, not just of the sample, plays an essential role.
 
 ## Bernstein's inequality
 
-Chebyshev's inequality and Hoeffding's inequality bound the deviation of an empirical average using two different properties of the summands: Chebyshev pays with the variance, Hoeffding with the range. That these are not the same price matters. A Bernoulli($p$) variable with a small $p$, say $p=10^{-6}$, lies in $[0,1]$, so Hoeffding treats it as a full-width $[0,1]$ variable, but its variance $p(1-p) \approx 10^{-6}$ is six orders of magnitude smaller than the range would suggest: the variable is almost always (nearly) $0$. The inequality due to [Bernstein (1924)](https://zbmath.org/?q=an%3AJFM%2050.0342.01)<!-- cite: bernstein1924modification | article | author={Bernstein, Sergei N.}; title={On a Modification of Chebyshev's Inequality and of the Error Formula of Laplace}; journal={Annals of the Scientific Institute of Mathematics and Mechanics, Tomsk State University}; year={1924} --> pays a variance-dependent price instead: the exponent is $\frac{m^2\epsilon^2}{2\sum_i\sigma_i^2 + \frac{2}{3}mb\epsilon}$, a variance term with a range-dependent correction that takes over only in the large-deviation regime. The proof runs the Chernoff trick of Theorem 4.4 once more, replacing Hoeffding's lemma (Lemma 4.1) by a moment bound that keeps track of the variance and charges the range only for the high-order part of the exponential series.
+Chebyshev's inequality and Hoeffding's inequality bound the deviation of an empirical average using two different properties of the summands: Chebyshev pays with the variance, Hoeffding with the range. That these are not the same price matters. A Bernoulli($p$) variable with a small $p$, say $p=10^{-6}$, lies in $[0,1]$, so Hoeffding treats it as a full-width $[0,1]$ variable, but its variance $p(1-p) \approx 10^{-6}$ is six orders of magnitude smaller than the range would suggest: the variable is almost always (nearly) $0$. The inequality due to [Bernstein (1924)](https://zbmath.org/?q=an%3AJFM%2050.0342.01)<!-- cite: bernstein1924modification | article | author={Bernstein, Sergei N.}; title={On a Modification of Chebyshev's Inequality and of the Error Formula of Laplace}; journal={Annals of the Scientific Institute of Mathematics and Mechanics, Tomsk State University}; year={1924} --> pays a variance-dependent price instead: the exponent is $\frac{m^2\epsilon^2}{2\sum_i\sigma_i^2 + \frac{2}{3}mb\epsilon}$, a variance term with a range-dependent correction that takes over only in the large-deviation regime. The proof runs the Chernoff trick of Theorem 5.6.5 once more, replacing Hoeffding's lemma (Lemma 5.6.4) by a moment bound that keeps track of the variance and charges the range only for the high-order part of the exponential series.
 
-**Lemma 4.2 (Moment growth under boundedness).** Let $X$ be a random variable with $\mathbb{E}[X]=0$, $\mathrm{Var}[X]=\sigma^2$, and $P(|X| \leq b)=1$ for some $b>0$. Then for every integer $k \geq 2$,
+**Lemma 5.6.7 (Moment growth under boundedness).** Let $X$ be a random variable with $\mathbb{E}[X]=0$, $\mathrm{Var}[X]=\sigma^2$, and $P(|X| \leq b)=1$ for some $b>0$. Then for every integer $k \geq 2$,
 $$\mathbb{E}\big[X^k\big] \leq b^{k-2}\sigma^2.$$
 
 **Proof.** Since $k \geq 2$ and $|X| \leq b$ almost surely, we have $|X|^{k-2} \leq b^{k-2}$ almost surely, and
 $$\mathbb{E}\big[X^k\big] \leq \mathbb{E}\big[|X|^k\big] = \mathbb{E}\big[|X|^{k-2}X^2\big] \leq b^{k-2}\,\mathbb{E}\big[X^2\big] = b^{k-2}\sigma^2. \ \square$$
 
-**Lemma 4.3 (Bennett's mgf bound).** Let $X$ be a random variable with $\mathbb{E}[X]=0$, $\mathrm{Var}[X]=\sigma^2$, and $P(X \leq b)=1$ for some $b>0$. Then for every $s>0$,
+**Lemma 5.6.8 (Bennett's mgf bound).** Let $X$ be a random variable with $\mathbb{E}[X]=0$, $\mathrm{Var}[X]=\sigma^2$, and $P(X \leq b)=1$ for some $b>0$. Then for every $s>0$,
 $$\mathbb{E}\big[e^{sX}\big] \leq \exp\Big(\frac{\sigma^2}{b^2}\big(e^{sb} - 1 - sb\big)\Big).$$
 
-**Proof.** Expand the moment generating function into its power series and apply Lemma 4.2 to each term:
+**Proof.** Expand the moment generating function into its power series and apply Lemma 5.6.7 to each term:
 $$\begin{aligned}
 \mathbb{E}\big[e^{sX}\big] = 1 + \sum_{k=2}^{\infty}\frac{s^k\,\mathbb{E}[X^k]}{k!} &\leq 1 + \sum_{k=2}^{\infty}\frac{s^k\,b^{k-2}\sigma^2}{k!}\\
 &= 1 + \frac{\sigma^2}{b^2}\sum_{k=2}^{\infty}\frac{(sb)^k}{k!}\\
@@ -323,17 +323,17 @@ $$\begin{aligned}
 \end{aligned}$$
 where the last step uses $1+u \leq e^u$ $\square$
 
-The contrast with Hoeffding's lemma (Lemma 4.1) is instructive: that lemma charges the full range, $\mathbb{E}[e^{sX}] \leq e^{s^2(b-a)^2/8}$, while Bennett's bound keeps the *variance* $\sigma^2$ in front and replaces the quadratic-in-$s$ charge by the exact Taylor remainder $e^{sb}-1-sb$ of a single summand hitting its range bound $b$. For small $sb$ this remainder is $\approx \tfrac12(sb)^2$, recovering a Hoeffding-like quadratic with the variance in front; for large $sb$ it grows only like $e^{sb}/b^2 \cdot \sigma^2$, which is where the range eventually has to be paid for.
+The contrast with Hoeffding's lemma (Lemma 5.6.4) is instructive: that lemma charges the full range, $\mathbb{E}[e^{sX}] \leq e^{s^2(b-a)^2/8}$, while Bennett's bound keeps the *variance* $\sigma^2$ in front and replaces the quadratic-in-$s$ charge by the exact Taylor remainder $e^{sb}-1-sb$ of a single summand hitting its range bound $b$. For small $sb$ this remainder is $\approx \tfrac12(sb)^2$, recovering a Hoeffding-like quadratic with the variance in front; for large $sb$ it grows only like $e^{sb}/b^2 \cdot \sigma^2$, which is where the range eventually has to be paid for.
 
-**Theorem 4.6 (Bernstein's inequality).** Let $X_1,\ldots,X_m$ be independent random variables with $\mathbb{E}[X_i]=0$, $\mathrm{Var}[X_i]=\sigma_i^2$, and $P(|X_i| \leq b)=1$ for a common $b>0$. Then for any $\epsilon>0$,
+**Theorem 5.6.9 (Bernstein's inequality).** Let $X_1,\ldots,X_m$ be independent random variables with $\mathbb{E}[X_i]=0$, $\mathrm{Var}[X_i]=\sigma_i^2$, and $P(|X_i| \leq b)=1$ for a common $b>0$. Then for any $\epsilon>0$,
 $$P\Big(\frac{1}{m}\sum_{i=1}^m X_i \geq \epsilon\Big) \leq \exp\Big(-\frac{m^2\epsilon^2}{2\sum_{i=1}^m\sigma_i^2 + \tfrac{2}{3}mb\epsilon}\Big).$$
 
-**Proof.** For any $s>0$, Markov's inequality (Theorem 4.1) applied to the increasing transformation $u \mapsto e^{su}$ of the sum, and independence, give
+**Proof.** For any $s>0$, Markov's inequality (Theorem 5.6.1) applied to the increasing transformation $u \mapsto e^{su}$ of the sum, and independence, give
 $$\begin{aligned}
 P\Big(\sum_{i=1}^m X_i \geq m\epsilon\Big) \leq e^{-sm\epsilon}\prod_{i=1}^m\mathbb{E}\big[e^{sX_i}\big] &\leq \exp\Big(-sm\epsilon + \frac{V}{b^2}\big(e^{sb}-1-sb\big)\Big)\\
 &=: e^{h(s)},
 \end{aligned}$$
-where the second inequality applies Lemma 4.3 to each $X_i$ (valid since $P(X_i \leq b)=1$ follows from $P(|X_i|\leq b)=1$) and $V := \sum_i \sigma_i^2$. The bound holds for every $s>0$, so it remains to minimize $h(s) = -sm\epsilon + \frac{V}{b^2}(e^{sb}-1-sb)$ over $s>0$. Since $h''(s) = Ve^{sb} > 0$, $h$ is strictly convex, $h(0)=0$, and $h'(0) = -m\epsilon < 0$, so the infimum over $s>0$ is attained at the unique stationary point $s^* > 0$ solving
+where the second inequality applies Lemma 5.6.8 to each $X_i$ (valid since $P(X_i \leq b)=1$ follows from $P(|X_i|\leq b)=1$) and $V := \sum_i \sigma_i^2$. The bound holds for every $s>0$, so it remains to minimize $h(s) = -sm\epsilon + \frac{V}{b^2}(e^{sb}-1-sb)$ over $s>0$. Since $h''(s) = Ve^{sb} > 0$, $h$ is strictly convex, $h(0)=0$, and $h'(0) = -m\epsilon < 0$, so the infimum over $s>0$ is attained at the unique stationary point $s^* > 0$ solving
 $$h'(s^*) = -m\epsilon + \frac{V}{b}\big(e^{s^*b}-1\big) = 0 \iff e^{s^*b} = 1+\frac{m\epsilon b}{V}.$$
 Define $u := \frac{m\epsilon b}{V} > 0$, so $s^*b = \log(1+u)$, $e^{s^*b}-1 = u$, and $m\epsilon = Vu/b$. Substituting into $h$,
 $$\begin{aligned}
@@ -350,7 +350,7 @@ Since $e^{h(s)} \leq e^{h(s^*)}$ for every $s>0$, the claim follows $\square$
 $$\psi''(u)-f''(u) = \frac{u^2(9+u)}{(1+u)(3+u)^3} \geq 0,$$
 using $(3+u)^3-27(1+u) = u^2(9+u)$. Conclude by two integrations from $0$ to $u$.
 
-Applying Theorem 4.6 to $-X_1,\ldots,-X_m$ (which satisfy the same hypotheses: $|-X_i| = |X_i| \leq b$ and $\mathrm{Var}[-X_i]=\sigma_i^2$) bounds the opposite tail identically, and adding the two gives the two-sided version with an extra factor of $2$.
+Applying Theorem 5.6.9 to $-X_1,\ldots,-X_m$ (which satisfy the same hypotheses: $|-X_i| = |X_i| \leq b$ and $\mathrm{Var}[-X_i]=\sigma_i^2$) bounds the opposite tail identically, and adding the two gives the two-sided version with an extra factor of $2$.
 
 **The two regimes.** Specialize to the i.i.d. case $\sigma_i^2 \equiv \sigma^2$ and read the bound as a function of the deviation size $\epsilon$:
 
@@ -363,20 +363,20 @@ The variance-adaptivity of the Gaussian regime is what makes Bernstein's inequal
 
 Hoeffding's inequality treats the deviation $\epsilon$ as an *absolute* quantity: the same $\epsilon$ is charged whether the mean is $\mu = \tfrac12$ or $\mu = 10^{-6}$. Bernstein's inequality repairs this through the variance; for $[0,1]$-valued variables, whose variance is at most the mean, $\mathrm{Var}[X_i] \leq \mathbb{E}[X_i^2] \leq \mu$, the same repair can be carried out directly in terms of $\mu$. For the small-mean case — which is exactly the regime of a well-trained classifier, whose error is close to zero — a *relative* deviation is the more natural scale, and a sharper bound is available. It is obtained by optimizing the Chernoff parameter exactly rather than crudely, at the cost of replacing the quadratic exponent by a binary version of the KL divergence. For $z,\mu \in (0,1)$ define
 $$\mathrm{kl}(z\,\|\,\mu) := z\log\frac{z}{\mu} + (1-z)\log\frac{1-z}{1-\mu},$$
-the **KL divergence between two Bernoulli laws** with parameters $z$ and $\mu$: it is zero iff $z=\mu$ and grows as $z$ moves away from $\mu$. (This is the two-outcome special case of the Kullback-Leibler divergence that reappears, in its general form, in the PAC-Bayes bounds of Chapter 5a.)
+the **KL divergence between two Bernoulli laws** with parameters $z$ and $\mu$: it is zero iff $z=\mu$ and grows as $z$ moves away from $\mu$. (This is the two-outcome special case of the Kullback-Leibler divergence that reappears, in its general form, in the PAC-Bayes bounds of Chapter 7.)
 
-**Theorem 4.7 (KL-form Chernoff bound).** Let $X_1,\ldots,X_m$ be i.i.d. with $P(X_i \in [0,1])=1$ and $\mathbb{E}[X_i] = \mu$. Then for every $z \in (\mu, 1)$,
+**Theorem 5.6.10 (KL-form Chernoff bound).** Let $X_1,\ldots,X_m$ be i.i.d. with $P(X_i \in [0,1])=1$ and $\mathbb{E}[X_i] = \mu$. Then for every $z \in (\mu, 1)$,
 $$P\Big(\frac{1}{m}\sum_{i=1}^m X_i \geq z\Big) \leq e^{-m\,\mathrm{kl}(z\|\mu)},$$
 and for every $z \in (0,\mu)$,
 $$P\Big(\frac{1}{m}\sum_{i=1}^m X_i \leq z\Big) \leq e^{-m\,\mathrm{kl}(z\|\mu)}.$$
 
-**Proof.** We start from the *chord trick* already used in Hoeffding's lemma (Lemma 4.1): for every $s > 0$, the function $x \mapsto e^{s x}$ is convex, so its graph on $[0,1]$ lies below the chord through the endpoints,
+**Proof.** We start from the *chord trick* already used in Hoeffding's lemma (Lemma 5.6.4): for every $s > 0$, the function $x \mapsto e^{s x}$ is convex, so its graph on $[0,1]$ lies below the chord through the endpoints,
 $$e^{s x} \;\leq\; (1-x)\,e^{s\cdot 0} + x\,e^{s\cdot 1} \;=\; (1-x) + x\,e^{s} \qquad (x \in [0,1]).$$
 Applying this to $X_1$ and taking expectations,
 $$\mathbb{E}\big[e^{s X_1}\big] \leq 1 - \mu + \mu\,e^{s},$$
 and by independence,
 $$P\Big(\sum_{i=1}^m X_i \geq mz\Big) \leq e^{-smz}\,\mathbb{E}\big[e^{s\sum_i X_i}\big] \leq \exp\big(-smz + m\log(1-\mu+\mu e^s)\big),$$
-using Markov's inequality (Theorem 4.1) with the increasing transformation $u \mapsto e^{su}$. The exponent $h(s) := -smz + m\log(1-\mu+\mu e^s)$ is a convex function of $s$ with $h(0) = 0$, and $h(s) \to +\infty$ as $s \to \infty$ (the linear term $ms(1-z)$ dominates), so its infimum over $s > 0$ is attained at the unique stationary point: setting $h'(s) = -mz + m\frac{\mu e^s}{1-\mu+\mu e^s} = 0$ and solving,
+using Markov's inequality (Theorem 5.6.1) with the increasing transformation $u \mapsto e^{su}$. The exponent $h(s) := -smz + m\log(1-\mu+\mu e^s)$ is a convex function of $s$ with $h(0) = 0$, and $h(s) \to +\infty$ as $s \to \infty$ (the linear term $ms(1-z)$ dominates), so its infimum over $s > 0$ is attained at the unique stationary point: setting $h'(s) = -mz + m\frac{\mu e^s}{1-\mu+\mu e^s} = 0$ and solving,
 $$e^{s^*} = \frac{z(1-\mu)}{\mu(1-z)}$$
 (note $s^* > 0$ since $z > \mu$). At this point $1-\mu+\mu e^{s^*} = \frac{1-\mu}{1-z}$, so
 $$h(s^*) = m\Big[-z\log\frac{z(1-\mu)}{\mu(1-z)} + \log\frac{1-\mu}{1-z}\Big] = -m\,\mathrm{kl}(z\|\mu),$$
@@ -386,17 +386,17 @@ The gain over Hoeffding's $e^{-2m\epsilon^2}$ shows up when $\mu$ is small. At t
 $$P\big(\widehat\mu_m = 0\big) = (1-\mu)^m = e^{-m\,\mathrm{kl}(0\|\mu)} \leq e^{-m\mu}.$$
 Each of the $m$ independent draws must miss the $\mu$-rare event, which costs a factor $(1-\mu)$ per draw — the exponent is **linear in the mean**, not quadratic in the deviation. The following corollary extracts from the KL form the explicit quadratic lower bounds on $\mathrm{kl}$ that make this usable.
 
-**Corollary 4.1 (Multiplicative Chernoff bounds).** Under the assumptions of Theorem 4.7, for every $\epsilon \in (0, 1-\mu)$,
+**Corollary 5.6.11 (Multiplicative Chernoff bounds).** Under the assumptions of Theorem 5.6.10, for every $\epsilon \in (0, 1-\mu)$,
 $$P\big(\widehat\mu_m \geq \mu + \epsilon\big) \leq \exp\Big(-\frac{m\epsilon^2}{2\mu+\frac23\epsilon}\Big),$$
 and for every $\epsilon \in (0, \mu)$,
 $$P\big(\widehat\mu_m \leq \mu - \epsilon\big) \leq \exp\Big(-\frac{m\epsilon^2}{2\mu}\Big).$$
 Equivalently, with $\epsilon = \gamma\mu$,
 $$P\big(\widehat\mu_m \geq (1+\gamma)\mu\big) \leq \exp\Big(-\frac{m\mu\gamma^2}{2+\frac23\gamma}\Big), \qquad P\big(\widehat\mu_m \leq (1-\gamma)\mu\big) \leq \exp\Big(-\frac{m\mu\gamma^2}{2}\Big).$$
 
-**Proof.** By Theorem 4.7 it suffices to bound $\mathrm{kl}(z\|\mu)$ from below at $z = \mu \pm \epsilon$. Since $\log v \geq 1 - \frac1v$ for $v > 0$, the second term of $\mathrm{kl}$ satisfies $(1-z)\log\frac{1-z}{1-\mu} \geq (1-z)\big(1 - \frac{1-\mu}{1-z}\big) = \mu - z$, so, writing $z = (1+u)\mu$ with $u > -1$,
+**Proof.** By Theorem 5.6.10 it suffices to bound $\mathrm{kl}(z\|\mu)$ from below at $z = \mu \pm \epsilon$. Since $\log v \geq 1 - \frac1v$ for $v > 0$, the second term of $\mathrm{kl}$ satisfies $(1-z)\log\frac{1-z}{1-\mu} \geq (1-z)\big(1 - \frac{1-\mu}{1-z}\big) = \mu - z$, so, writing $z = (1+u)\mu$ with $u > -1$,
 $$\mathrm{kl}(z\|\mu) \;\geq\; z\log\frac z\mu - (z-\mu) = \mu\big[(1+u)\log(1+u) - u\big] = \mu\,\psi(u),$$
-with $\psi$ the function of the proof of Bernstein's inequality (Theorem 4.6). For the upper tail, $u = \epsilon/\mu > 0$, and the inequality $\psi(u) \geq \frac{u^2/2}{1+u/3}$ of the Exercise following Theorem 4.6 gives
+with $\psi$ the function of the proof of Bernstein's inequality (Theorem 5.6.9). For the upper tail, $u = \epsilon/\mu > 0$, and the inequality $\psi(u) \geq \frac{u^2/2}{1+u/3}$ of the Exercise following Theorem 5.6.9 gives
 $$\mathrm{kl}(\mu+\epsilon\|\mu) \;\geq\; \mu\,\frac{\epsilon^2/(2\mu^2)}{1 + \epsilon/(3\mu)} = \frac{\epsilon^2}{2\mu + \frac23\epsilon}.$$
 For the lower tail, $u = -\epsilon/\mu \in (-1,0)$. There $\psi(0) = \psi'(0) = 0$ and $\psi''(v) = \frac{1}{1+v} \geq 1$ for $v \in (-1,0]$, so Taylor's theorem with Lagrange remainder gives $\psi(u) \geq \frac{u^2}{2}$, and $\mathrm{kl}(\mu-\epsilon\|\mu) \geq \mu\frac{\epsilon^2}{2\mu^2} = \frac{\epsilon^2}{2\mu}$ $\square$
 
-The two tails are not symmetric. The upper-tail denominator cannot be replaced by $2\mu$: at $\mu = 0.1$, $\epsilon = 0.1$ that would claim the exponent $\frac{\epsilon^2}{2\mu} = 0.05$, but the exact exponent of Theorem 4.7 is only $\mathrm{kl}(0.2\|0.1) \approx 0.044$ (the corollary's exponent is $\frac{0.01}{0.2667} \approx 0.0375$). The lower tail — the empirical average falling below the mean — is the one that drives the generalization bounds of Chapter 5, and there the clean $2\mu$ holds. Comparing with Bernstein's inequality is instructive: a $[0,1]$-valued variable has $\mathrm{Var}[X_i] \leq \mathbb{E}[X_i^2] \leq \mu$, and Theorem 4.6 applied to $X_i - \mu$ (with $|X_i - \mu| \leq 1$) gives exactly the upper-tail bound above, while for the lower tail it gives the weaker denominator $2\mu + \frac23\epsilon$. The KL form of Theorem 4.7 is sharper than both displays of the corollary, whose exponents are lower bounds on $\mathrm{kl}$.
+The two tails are not symmetric. The upper-tail denominator cannot be replaced by $2\mu$: at $\mu = 0.1$, $\epsilon = 0.1$ that would claim the exponent $\frac{\epsilon^2}{2\mu} = 0.05$, but the exact exponent of Theorem 5.6.10 is only $\mathrm{kl}(0.2\|0.1) \approx 0.044$ (the corollary's exponent is $\frac{0.01}{0.2667} \approx 0.0375$). The lower tail — the empirical average falling below the mean — is the one that drives the generalization bounds of Chapter 6, and there the clean $2\mu$ holds. Comparing with Bernstein's inequality is instructive: a $[0,1]$-valued variable has $\mathrm{Var}[X_i] \leq \mathbb{E}[X_i^2] \leq \mu$, and Theorem 5.6.9 applied to $X_i - \mu$ (with $|X_i - \mu| \leq 1$) gives exactly the upper-tail bound above, while for the lower tail it gives the weaker denominator $2\mu + \frac23\epsilon$. The KL form of Theorem 5.6.10 is sharper than both displays of the corollary, whose exponents are lower bounds on $\mathrm{kl}$.

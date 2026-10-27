@@ -1,4 +1,4 @@
-This table collects the symbols used throughout the book for quick reference. Chapter 1 states the underlying conventions (parentheses vs. brackets, uppercase vs. lowercase, etc.) in prose; this page is only a lookup table.
+This table collects the symbols used throughout the book for quick reference. Chapter 2 states the underlying conventions (parentheses vs. brackets, uppercase vs. lowercase, etc.) in prose; this page is only a lookup table.
 
 **Sets and spaces**
 
@@ -10,7 +10,7 @@ This table collects the symbols used throughout the book for quick reference. Ch
 | $\mathcal{D}$ | Data distribution over $\mathcal{X}\times\mathcal{Y}$ |
 | $\mathcal{D}_{\mathcal{X}}$ | Marginal of $\mathcal{D}$ on $\mathcal{X}$ |
 | $[m]$ | $\{1,\ldots,m\}$ |
-| $\mathrm{dist}(\cdot,\cdot)$ | Distance function of a metric space (Chapter 2) |
+| $\mathrm{dist}(\cdot,\cdot)$ | Distance function of a metric space (Chapter 3) |
 
 **Data and samples**
 
@@ -34,13 +34,13 @@ This table collects the symbols used throughout the book for quick reference. Ch
 | $\mathbb{E}[\cdot]$, $\mathrm{Var}[\cdot]$, $\mathrm{Cov}[\cdot,\cdot]$ | Expectation, variance, covariance |
 | $\mathds{1}(\cdot)$ | Indicator function |
 | $\log$ | Natural logarithm |
-| $\sigma$ | Standard deviation (bandwidth of an RBF kernel in Chapter 9 only) |
-| $\sigma_i \in \{-1,+1\}$ | A Rademacher sign (from Chapter 5a onwards) |
-| $\mathrm{kl}(z\,\|\,\mu)$ | KL divergence between Bernoulli($z$) and Bernoulli($\mu$) (Chapter 4) |
-| $\mathrm{KL}(P\,\|\,Q)$ | Kullback-Leibler divergence $\mathbb{E}_P[\log\frac{dP}{dQ}]$ (Chapter 5a) |
-| $\mathrm{TV}(P,Q)$, $\chi^2(P\,\|\,Q)$ | Total variation distance, chi-squared divergence (Chapter 5a) |
+| $\sigma$ | Standard deviation (bandwidth of an RBF kernel in Chapter 11 only) |
+| $\sigma_i \in \{-1,+1\}$ | A Rademacher sign (from Chapter 7 onwards) |
+| $\mathrm{kl}(z\,\|\,\mu)$ | KL divergence between Bernoulli($z$) and Bernoulli($\mu$) (Chapter 5) |
+| $\mathrm{KL}(P\,\|\,Q)$ | Kullback-Leibler divergence $\mathbb{E}_P[\log\frac{dP}{dQ}]$ (Chapter 7) |
+| $\mathrm{TV}(P,Q)$, $\chi^2(P\,\|\,Q)$ | Total variation distance, chi-squared divergence (Chapter 7) |
 | $P^{\otimes m}$, $\mathcal{D}^m$ | Law of $m$ i.i.d. draws |
-| $I(j,S)$ | Mutual information between an index $j$ and a sample $S$ (Chapter 5a) |
+| $I(j,S)$ | Mutual information between an index $j$ and a sample $S$ (Chapter 7) |
 
 **Losses and risks**
 
@@ -67,11 +67,11 @@ This table collects the symbols used throughout the book for quick reference. Ch
 | $\tau_{\mathcal{H}}(m)$ | Growth function of $\mathcal{H}$ |
 | $\mathfrak{R}, \widehat{\mathfrak{R}}_S$ | Rademacher complexity (population, empirical) |
 | $N(\epsilon,\mathcal{H},\mathrm{dist})$ | Covering number of $\mathcal{H}$ at scale $\epsilon$ |
-| $\langle a,b\rangle_S$, $\|g\|_S$ | Empirical inner product $\frac1m\sum_i a_ib_i$ and norm on the sample; $L_p(S)$ the empirical $L_p$ distance (Chapter 5a) |
+| $\langle a,b\rangle_S$, $\|g\|_S$ | Empirical inner product $\frac1m\sum_i a_ib_i$ and norm on the sample; $L_p(S)$ the empirical $L_p$ distance (Chapter 7) |
 | $\mathrm{conv}(\mathcal{H})$ | Convex hull: all finite convex combinations of members of $\mathcal{H}$ |
-| $\mathcal{F}_{A,L_1}(\Psi)$ | Combinations of members of $\Psi$ with total weight $\sum_j|w_j| \leq A$ (Chapter 5a) |
-| $\epsilon$-uniformly stable | Stability parameter of an algorithm (Definition 5a.3); here $\epsilon$ is a sensitivity, not an accuracy |
-| $r_m(\mathcal{P},Q)$ | Minimax risk (Definition 5a.4) |
+| $\mathcal{F}_{A,L_1}(\Psi)$ | Combinations of members of $\Psi$ with total weight $\sum_j|w_j| \leq A$ (Chapter 7) |
+| $\epsilon$-uniformly stable | Stability parameter of an algorithm (Definition 7.8.1); here $\epsilon$ is a sensitivity, not an accuracy |
+| $r_m(\mathcal{P},Q)$ | Minimax risk (Definition 7.9.1) |
 
 **Model and optimization symbols**
 
@@ -80,12 +80,12 @@ This table collects the symbols used throughout the book for quick reference. Ch
 | $w$ | A weight vector |
 | $\lambda$ | A regularization coefficient |
 | $\alpha$ | A learning rate |
-| $\beta$ | Smoothness constant: $\nabla f$ is $\beta$-Lipschitz (Chapters 5a, 8, 10); inverse temperature in PAC-Bayes (Chapter 5a) |
-| $\lambda$-strongly convex | See Theorem 5a.11 |
-| $\gamma$ | Weak-learning edge (Chapter 10) |
-| $\eta_t$ | Step size of gradient boosting (Chapter 10) |
+| $\beta$ | Smoothness constant: $\nabla f$ is $\beta$-Lipschitz (Chapters 7, 10, 12); inverse temperature in PAC-Bayes (Chapter 7) |
+| $\lambda$-strongly convex | See Theorem 7.8.3 |
+| $\gamma$ | Weak-learning edge (Chapter 12) |
+| $\eta_t$ | Step size of gradient boosting (Chapter 12) |
 
-**Neural networks (Chapter 8)**
+**Neural networks (Chapter 10)**
 
 | Symbol | Meaning |
 |---|---|
@@ -95,7 +95,7 @@ This table collects the symbols used throughout the book for quick reference. Ch
 | $W_l, b^l$ | Weight matrix and bias vector of layer $l$ |
 | $\delta_j^l$ | Backpropagated error of neuron $j$ in layer $l$ |
 
-**Kernel methods (Chapter 9)**
+**Kernel methods (Chapter 11)**
 
 | Symbol | Meaning |
 |---|---|

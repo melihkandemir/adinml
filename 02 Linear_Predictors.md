@@ -130,7 +130,7 @@ Note what the definition does *not* assume: that $\mathcal{X}$ is a vector space
 
 ---
 
-This is the level of generality we need: in this chapter $\mathcal{X}$ will be a space of real vectors, but in Chapter 5a the very same definition will be applied to $\mathcal{X} = \mathcal{H}$, a set of hypotheses, and it is precisely the distance *between hypotheses* that the covering-number generalization bounds there are built on.
+This is the level of generality we need: in this chapter $\mathcal{X}$ will be a space of real vectors, but in Chapter 7 the very same definition will be applied to $\mathcal{X} = \mathcal{H}$, a set of hypotheses, and it is precisely the distance *between hypotheses* that the covering-number generalization bounds there are built on.
 
 For $p \geq 1$, the $L_p$-norm of a vector $u \in \mathbb{R}^d$ is defined as follows
 
@@ -173,14 +173,14 @@ plt.show()
 
 # Regularized least squares
 
-We have seen in Chapter 1 that $\widehat{R}_S(h_S)=0$ can be achieved by memorizing the training set, resulting in overfitting. Let us then write the hypothesis space as a nested chain of subclasses of growing capacity, $\mathcal{H}_1 \subset \mathcal{H}_2 \subset \cdots$ with $\mathcal{H} = \bigcup_{i} \mathcal{H}_i$, and devise an objective that pursues the dual goals of fitting the data as well as possible and constraining model complexity concurrently:
+We have seen in Chapter 2 that $\widehat{R}_S(h_S)=0$ can be achieved by memorizing the training set, resulting in overfitting. Let us then write the hypothesis space as a nested chain of subclasses of growing capacity, $\mathcal{H}_1 \subset \mathcal{H}_2 \subset \cdots$ with $\mathcal{H} = \bigcup_{i} \mathcal{H}_i$, and devise an objective that pursues the dual goals of fitting the data as well as possible and constraining model complexity concurrently:
 
 $$\begin{gathered}
 h_S := \arg \min_{h \in \mathcal{H}} \widehat{R}_S(h) + \lambda \cdot \mathrm{pen}(i(h)), \\
 i(h) := \min\{ i : h \in \mathcal{H}_i \}.
 \end{gathered}$$
 
-Here $\lambda$ is called a **regularization coefficient** and $\mathrm{pen}(\cdot)$, an increasing function of the subclass index, a **regularizer**. As we will see in more detail in Chapter 5, this paradigm is called **Structural Risk Minimization (SRM)**, one of the biggest achievements of machine learning research in the pre-deep-learning era.
+Here $\lambda$ is called a **regularization coefficient** and $\mathrm{pen}(\cdot)$, an increasing function of the subclass index, a **regularizer**. As we will see in more detail in Chapter 6, this paradigm is called **Structural Risk Minimization (SRM)**, one of the biggest achievements of machine learning research in the pre-deep-learning era.
 
 Let us next apply the idea of constraining the hypothesis space to the least squares problem:
 
