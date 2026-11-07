@@ -127,13 +127,13 @@ In short: finiteness of $\mathcal{H}$ alone is already enough to guarantee learn
 
 ---
 
-**Definition 6.2.7 (Bayes Error)** Given a data distribution $(x,y) \sim \mathcal{D}$, the **Bayes error** is the risk of the best possible predictor over *all* measurable functions $\mathcal{X} \rightarrow \mathcal{Y}$ — not merely the best one inside some hypothesis class $\mathcal{H}$:
+**Definition 6.2.7 (Bayes Error)** Given a data distribution $(x,y) \sim \mathcal{D}$, the **Bayes error** is the risk of the best possible predictor over *all* measurable functions $\mathcal{X} \rightarrow \mathcal{Y}$:
 
 $$R^*_{\mathcal{D}} := \inf_{h': \mathcal{X} \rightarrow \mathcal{Y}} R(h').$$
 
 ---
 
-A predictor $h^*$ that achieves the Bayes error is called a **Bayes (optimal) predictor**. For binary classification with $\mathcal{Y} = \{0,1\}$, the Bayes predictor is
+The infimum above ranges over all measurable functions, not merely over the best predictor inside some hypothesis class $\mathcal{H}$. A predictor $h^*$ that achieves the Bayes error is called a **Bayes (optimal) predictor**. For binary classification with $\mathcal{Y} = \{0,1\}$, the Bayes predictor is
 
 $$h^*(x) = \arg \max_{y \in \{0,1\}} P(y \mid x),$$
 
@@ -562,9 +562,9 @@ This result is consistent with the implications of the fundamental theorem of st
 
 $$P(\{S \sim \mathcal{D}^m: R(A(S)) \le R(h) + \epsilon\}) \geq 1-\delta.$$
 
-The difference from Definition 6.2.5 is that the required sample size may depend on the hypothesis $h$ we are competing against, rather than being uniform over the whole class — hence the name.
-
 ---
+
+The difference from Definition 6.2.5 is that the required sample size may depend on the hypothesis $h$ we are competing against, rather than being uniform over the whole class — hence the name.
 
 An agnostic PAC learnable hypothesis class $\mathcal{H}$ is also nonuniform learnable because $R(A(S)) \leq \min_{h' \in \mathcal{H}} R(h') + \epsilon$ results trivially in $R(A(S)) \leq R(h) + \epsilon, \forall h \in \mathcal{H}$. Hence, the set of non-uniform learnable hypothesis classes is larger than the agnostic PAC learnable hypothesis classes. With this relaxation, our motivation is to increase the model capacity while sustaining its learnability.
 
@@ -654,11 +654,11 @@ Note that this rule suggests the hypothesis that can be expressed with the minim
 
 ## The Realizable Case: Fast Rates
 
-Theorem 6.1.3 charges a deviation of order $1/\sqrt m$ whatever the risk of the hypothesis. Under realizability (Definition 6.2.1) this is pessimistic: a hypothesis with true risk $\mu$ survives $m$ examples with zero training error with probability $(1-\mu)^m$, which decays exponentially in $m\mu$ rather than in $m\mu^2$. The multiplicative Chernoff bounds of Chapter 5 (Theorem 5.6.10 and Corollary 5.6.11) turn this observation into a $1/m$ rate.
+Theorem 6.1.3 charges a deviation of order $1/\sqrt m$ whatever the risk of the hypothesis. Under realizability (Definition 6.2.1) this is pessimistic: a hypothesis with true risk $\mu$ survives $m$ examples with zero training error with probability $(1-\mu)^m$, which decays exponentially in $m\mu$ rather than in $m\mu^2$. The multiplicative Chernoff bounds of Chapter 5 (Theorem 5.6.10 and Corollary 5.6.11) turn this observation into a $1/m$ rate. The second statement below is the relative-deviation form of the same argument: it remains valid for ERM hypotheses with small *nonzero* training error and for an arbitrary data distribution.
 
 **Theorem 6.4.14 (Realizable case: the fast rate).** Let $\mathcal{H}$ be a finite hypothesis class for binary classification under the zero-one loss, realized by $\mathcal{D}$ (Definition 6.2.1), and let $h_S$ be any ERM hypothesis. Then for any $\delta \in (0,1)$, with probability at least $1-\delta$ over $S \sim \mathcal{D}^m$,
 $$R(h_S) \;\leq\; \frac{\log|\mathcal{H}| + \log(1/\delta)}{m}.$$
-Moreover — and this second statement survives ERM hypotheses with small *nonzero* training error and arbitrary $\mathcal{D}$ — with probability at least $1-\delta$, simultaneously for all $h \in \mathcal{H}$,
+Moreover, with probability at least $1-\delta$, simultaneously for all $h \in \mathcal{H}$,
 $$R(h) \;\leq\; 2\,\widehat{R}_S(h) + \frac{2\log|\mathcal{H}| + 2\log(1/\delta)}{m}.$$
 
 **Proof.** For the first statement, fix $h \in \mathcal{H}$ with $R(h) = \mu$. Under realizability ERM attains $\widehat{R}_S(h_S) = 0$ (some $h^*$ has zero loss on every sample point, and $h_S$'s training error is minimal). Since the losses $\mathds{1}(h(x_i) \neq y_i)$ are i.i.d. Bernoulli($\mu$),

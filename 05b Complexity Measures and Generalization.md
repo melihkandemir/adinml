@@ -85,7 +85,7 @@ We follow the formulation of [Bartlett & Mendelson (2002)](https://www.jmlr.org/
 
 $$\widehat{\mathfrak{R}}(A) := \mathbb{E}_\sigma\Big[\sup_{a \in A} \frac{1}{m}\sum_{i=1}^m \sigma_i a_i\Big].$$
 
-For a hypothesis class $\mathcal{H}$ and a fixed sample $S = \{(x_i,y_i)\}_{i=1}^m$, write $\ell \circ \mathcal{H} \circ S := \big\{(\ell(y_1, h(x_1)),\ldots,\ell(y_m, h(x_m))) : h \in \mathcal{H}\big\} \subset \mathbb{R}^m$ for the loss class evaluated on $S$, and define the **empirical Rademacher complexity** $\widehat{\mathfrak{R}}_S(\ell\circ\mathcal{H}) := \widehat{\mathfrak{R}}(\ell\circ\mathcal{H}\circ S)$ — a data-dependent quantity, computable from $S$ alone — and the **(expected) Rademacher complexity** $\mathfrak{R}_m(\ell\circ\mathcal{H}) := \mathbb{E}_S\big[\widehat{\mathfrak{R}}_S(\ell\circ\mathcal{H})\big]$. When we want the complexity of the hypothesis class itself rather than of the loss class, we write $\widehat{\mathfrak{R}}_S(\mathcal{H}) := \widehat{\mathfrak{R}}(\mathcal{H}_S)$, evaluated on the restriction $\mathcal{H}_S$ of Definition 6.4.1.
+For a hypothesis class $\mathcal{H}$ and a fixed sample $S = \{(x_i,y_i)\}_{i=1}^m$, write $\ell \circ \mathcal{H} \circ S := \big\{(\ell(y_1, h(x_1)),\ldots,\ell(y_m, h(x_m))) : h \in \mathcal{H}\big\} \subset \mathbb{R}^m$ for the loss class evaluated on $S$, and define the **empirical Rademacher complexity** $\widehat{\mathfrak{R}}_S(\ell\circ\mathcal{H}) := \widehat{\mathfrak{R}}(\ell\circ\mathcal{H}\circ S)$ and the **(expected) Rademacher complexity** $\mathfrak{R}_m(\ell\circ\mathcal{H}) := \mathbb{E}_S\big[\widehat{\mathfrak{R}}_S(\ell\circ\mathcal{H})\big]$. For a hypothesis class $\mathcal{H}$, set $\widehat{\mathfrak{R}}_S(\mathcal{H}) := \widehat{\mathfrak{R}}(\mathcal{H}_S)$, where $\mathcal{H}_S$ is the restriction of Definition 6.4.1.
 
 ---
 
@@ -213,7 +213,7 @@ Notice this bound does not depend on the input dimension $d$ at all — only on 
 
 Rademacher complexity measures $\mathcal{H}$'s capacity to correlate with noise. **Covering numbers** measure a more concrete quantity: how many hypotheses it takes to approximate every hypothesis in $\mathcal{H}$ to a given tolerance.
 
-**Definition 7.4.1 ($\epsilon$-cover, covering number).** Let $\mathcal{H}$ be a hypothesis class equipped with a (pseudo-)metric $\mathrm{dist}(\cdot,\cdot)$: a function satisfying axioms M2 and M3 of the metric-space definition of Chapter 3, while M1 is relaxed to the one-directional $\mathrm{dist}(h,h') = 0 \Leftarrow h = h'$, so that distinct hypotheses may sit at distance zero. A finite set $\{h_1,\ldots,h_N\} \subset \mathcal{H}$ is an **$\epsilon$-cover** of $\mathcal{H}$ if for every $h \in \mathcal{H}$ there exists $j \in [N]$ with $\mathrm{dist}(h,h_j) \leq \epsilon$. The **covering number** $N(\epsilon,\mathcal{H},\mathrm{dist})$ is the size of the smallest such cover.
+**Definition 7.4.1 ($\epsilon$-cover, covering number).** Let $\mathcal{H}$ be a hypothesis class equipped with a (pseudo-)metric $\mathrm{dist}(\cdot,\cdot)$: a function satisfying axioms M2 and M3 of the metric-space definition of Chapter 3, while M1 is relaxed to the one-directional $\mathrm{dist}(h,h') = 0 \Leftarrow h = h'$. A finite set $\{h_1,\ldots,h_N\} \subset \mathcal{H}$ is an **$\epsilon$-cover** of $\mathcal{H}$ if for every $h \in \mathcal{H}$ there exists $j \in [N]$ with $\mathrm{dist}(h,h_j) \leq \epsilon$. The **covering number** $N(\epsilon,\mathcal{H},\mathrm{dist})$ is the size of the smallest such cover.
 
 ---
 
@@ -221,20 +221,17 @@ In words, an $\epsilon$-cover is a finite "grid" of representative hypotheses su
 
 The relevant metric for generalization is one under which the risk is Lipschitz: if $\ell(\cdot,y)$ is $G$-Lipschitz in its first argument for every $y$, and $\mathrm{dist}(h,h') := \mathbb{E}_{x\sim\mathcal{D}}|h(x)-h'(x)|$, then $|R(h)-R(h')| \leq G\,\mathrm{dist}(h,h')$ for all $h,h' \in \mathcal{H}$ — replacing $h$ by the nearest cover element changes the risk by only $G\epsilon$. This particular $\mathrm{dist}$ is a genuine pseudo-metric rather than a metric: two distinct hypotheses that differ only on inputs that $\mathcal{D}$ never draws have distance zero, which is exactly why M1 had to be relaxed above — and it is harmless, since such hypotheses also have identical risk.
 
-**Theorem 7.4.2 (Covering-number generalization bound).** Let $\{h_1,\ldots,h_{N(\epsilon)}\}$ be an $\epsilon$-cover of $\mathcal{H}$ under $\mathrm{dist}$ as above, with loss bounded in $[0,1]$. Then, for any $h \in \mathcal{H}$, choosing $h_j$ within $\epsilon$ of $h$,
+**Theorem 7.4.2 (Covering-number generalization bound).** Let $\{h_1,\ldots,h_{N(\epsilon)}\}$ be an $\epsilon$-cover of $\mathcal{H}$ under $\mathrm{dist}$ as above, with loss bounded in $[0,1]$ and $G$-Lipschitz in its first argument for every $y$. Then for any $\delta\in(0,1)$, with probability at least $1-\delta$, simultaneously for all $h \in \mathcal{H}$,
+$$R(h) \leq \widehat{R}_S(h) + 2G\epsilon + \sqrt{\frac{\log(2N(\epsilon)/\delta)}{2m}}.$$
 
+***Proof.*** Fix $h \in \mathcal{H}$ and choose a cover center $h_j$ with $\mathrm{dist}(h,h_j) \leq \epsilon$. The triangle inequality gives
 $$
 \begin{aligned}
 \big|\widehat{R}_S(h) - R(h)\big| &\leq \big|\widehat{R}_S(h) - \widehat{R}_S(h_j)\big| + \big|\widehat{R}_S(h_j)-R(h_j)\big| + \big|R(h_j)-R(h)\big| \\
 &\leq 2G\epsilon + \big|\widehat{R}_S(h_j)-R(h_j)\big|,
 \end{aligned}
 $$
-
-using the Lipschitz bound on both the empirical and true risk. Applying the finite-hypothesis-class bound (Theorem 6.1.3) to the right-hand side, over the $N(\epsilon)$ cover centers, gives: with probability at least $1-\delta$, simultaneously for all $h \in \mathcal{H}$,
-
-$$R(h) \leq \widehat{R}_S(h) + 2G\epsilon + \sqrt{\frac{\log(2N(\epsilon)/\delta)}{2m}}.$$
-
-**Proof.** The displayed chain of inequalities is the triangle inequality for $|\cdot|$, applied twice, with $|\widehat{R}_S(h)-\widehat{R}_S(h_j)| \leq G\epsilon$ and $|R(h)-R(h_j)| \leq G\epsilon$ from the Lipschitz property just established (the same argument bounds the empirical risk, since $\widehat{R}_S$ is the risk under the empirical distribution and the Lipschitz bound holds pointwise in $x$). The remaining term $|\widehat{R}_S(h_j)-R(h_j)|$ concerns only the $N(\epsilon)$ **fixed, data-independent** cover centers, so Theorem 6.1.3 applies to the finite class $\{h_1,\ldots,h_{N(\epsilon)}\}$ and bounds it, uniformly over $j$, by $\sqrt{\log(2N(\epsilon)/\delta)/(2m)}$ with probability at least $1-\delta$ $\square$
+where the last step uses the Lipschitz bound on both the empirical and true risk. The remaining term concerns only the $N(\epsilon)$ **fixed, data-independent** cover centers, so Theorem 6.1.3 applies to the finite class $\{h_1,\ldots,h_{N(\epsilon)}\}$ and bounds it, uniformly over $j$, by $\sqrt{\log(2N(\epsilon)/\delta)/(2m)}$ with probability at least $1-\delta$ $\square$
 
 This is exactly the finite-hypothesis-class argument of Theorem 6.1.3, applied not to $\mathcal{H}$ itself but to a *finite proxy* for it — the $\epsilon$-cover — with an extra $2G\epsilon$ term paying for the approximation error of using the proxy.
 
@@ -263,7 +260,7 @@ $$\mathrm{KL}(\rho\|q) := \mathbb{E}_{h\sim\rho}\Big[\log\frac{\rho(h)}{q(h)}\Bi
 
 a measure of how distinguishable $\rho$ is from $q$: it is zero exactly when the two distributions coincide, and grows as $\rho$ places mass where $q$ places little. (Its definition is re-derived and used in the proof, where it appears as the expectation of a log-ratio; only the two displayed properties just stated are needed to read the theorem.)
 
-**Theorem 7.5.1 (PAC-Bayes bound).** Assume the loss is bounded in $[0,1]$. For any prior $q$ fixed before $S$, any $\beta>0$, and any $\delta \in (0,1)$, with probability at least $1-\delta$ over $S \sim \mathcal{D}^m$, **simultaneously for every posterior $\rho$** (chosen after seeing $S$, in any way):
+**Theorem 7.5.1 (PAC-Bayes bound).** Assume the loss is bounded in $[0,1]$. For any prior $q$ fixed before $S$, any $\beta>0$, and any $\delta \in (0,1)$, with probability at least $1-\delta$ over $S \sim \mathcal{D}^m$, **simultaneously for every posterior $\rho$ possibly depending on $S$**:
 
 $$R(\rho) \leq \widehat{R}_S(\rho) + \frac{1}{\beta}\,\mathrm{KL}(\rho \| q) + \frac{1}{\beta}\log\frac{1}{\delta} + \frac{\beta}{8m}.$$
 
@@ -326,7 +323,6 @@ and write $\|g\|_{S} := \mathrm{dist}_{L_2(S)}(g,0)$. Covering numbers are those
 
 **Lemma 7.6.1 (Packing bound for VC classes).** Let $\mathcal{G}$ be a class of $\{0,1\}$-valued functions with VC dimension $d \geq 1$, and let $P$ be any distribution on the domain, with $\mathrm{dist}_{L_1(P)}(g,g') := \mathbb{E}_{x\sim P}|g(x)-g'(x)| = P\big(g(x) \neq g'(x)\big)$. Then for every $\epsilon \in (0,1]$,
 $$\log N\big(\epsilon,\mathcal{G},L_1(P)\big) \;\leq\; 2d\log\frac{4e}{\epsilon}.$$
-In particular this holds for $L_1(S)$, taking $P$ uniform on the points of $S$, uniformly over all samples $S$.
 
 **Proof.** Call $g_1,\ldots,g_M \in \mathcal{G}$ **$\epsilon$-separated** if $\mathrm{dist}_{L_1(P)}(g_j,g_k) > \epsilon$ for all $j \neq k$. We show that every $\epsilon$-separated family satisfies $\log M \leq 2d\log(4e/\epsilon)$. Granting this, a separated family of maximal size exists, and as in the proof of Lemma 7.4.3 it is an $\epsilon$-cover (a function farther than $\epsilon$ from all its members could be added to it), which proves the lemma.
 
@@ -338,7 +334,7 @@ If $n \leq d$, then $M \leq 2^n \leq 2^d$ and $\log M \leq d\log 2$, which is be
 $$u \;\leq\; \log\frac{e\,n}{d} \;\leq\; \log\Big(e\Big(\frac{2u}{\epsilon}+\frac1d\Big)\Big) \;\leq\; 1 + \log\frac1\epsilon + \log(2u+1).$$
 The function $u \mapsto \tfrac u2 + \log 4 - \log(2u+1)$ has derivative $\tfrac12 - \tfrac{2}{2u+1}$, hence its minimum over $u \geq 0$ at $u = \tfrac32$, where its value is $\tfrac34 > 0$; so $\log(2u+1) \leq \tfrac u2 + \log 4$. Substituting, $u \leq 1 + \log\frac1\epsilon + \log 4 + \frac u2$, i.e. $u \leq 2\log\frac{4e}{\epsilon}$ $\square$
 
-The proof is the probabilistic method in its plainest form: a random sample of $O(\log M/\epsilon)$ points tells $M$ well-separated functions apart, so $M$ cannot exceed the number of labelings a VC class produces on that many points. The volumetric bound of Lemma 7.4.3 needed the dimension of a parameter space; Lemma 7.6.1 needs only the VC dimension, and it holds for every sample at once. A more delicate argument due to [Haussler (1995)](https://doi.org/10.1016/0097-3165(95)90052-7)<!-- cite: haussler1995sphere | article | author={Haussler, David}; title={Sphere Packing Numbers for Subsets of the Boolean Cube with Bounded Vapnik-Chervonenkis Dimension}; journal={Journal of Combinatorial Theory, Series A}; year={1995}; volume={69}; number={2}; pages={217--232} --> improves the right-hand side to $1 + \log(d+1) + d\log(2e/\epsilon)$; for our purposes the difference is a constant factor.
+The proof is the probabilistic method in its plainest form: a random sample of $O(\log M/\epsilon)$ points tells $M$ well-separated functions apart, so $M$ cannot exceed the number of labelings a VC class produces on that many points. In particular the bound holds for $L_1(S)$, taking $P$ uniform on the points of $S$, uniformly over all samples $S$. The volumetric bound of Lemma 7.4.3 needed the dimension of a parameter space; Lemma 7.6.1 needs only the VC dimension, and it holds for every sample at once. A more delicate argument due to [Haussler (1995)](https://doi.org/10.1016/0097-3165(95)90052-7)<!-- cite: haussler1995sphere | article | author={Haussler, David}; title={Sphere Packing Numbers for Subsets of the Boolean Cube with Bounded Vapnik-Chervonenkis Dimension}; journal={Journal of Combinatorial Theory, Series A}; year={1995}; volume={69}; number={2}; pages={217--232} --> improves the right-hand side to $1 + \log(d+1) + d\log(2e/\epsilon)$; for our purposes the difference is a constant factor.
 
 For $\{0,1\}$-valued functions $(g(x)-g'(x))^2 = |g(x)-g'(x)|$, so $\mathrm{dist}_{L_2(S)} = \sqrt{\mathrm{dist}_{L_1(S)}}$ and an $L_1(S)$-cover at scale $\epsilon^2$ is an $L_2(S)$-cover at scale $\epsilon$:
 $$\log N\big(\epsilon,\mathcal{G},L_2(S)\big) \;\leq\; 2d\log\frac{4e}{\epsilon^2} \qquad (\epsilon \in (0,1]). \tag{7.2}$$
@@ -468,7 +464,11 @@ Every bound in this chapter so far is an *upper* bound: it certifies that some a
 
 **Definition 7.9.1 (Minimax risk).** For a distribution family $\mathcal{P}$ over examples, a quality measure $Q$ assigning to each pair (hypothesis, distribution) a nonnegative loss, and an algorithm $A$ mapping training sets to hypotheses, the worst-case risk of $A$ is
 $$r_m(A,\mathcal{P},Q) := \sup_{\mathcal{D}\in\mathcal{P}}\ \mathbb{E}_{S\sim\mathcal{D}^m}\ \mathbb{E}_A\big[Q(A(S),\mathcal{D})\big],$$
-where $\mathbb{E}_A$ averages over any internal randomization of $A$. The **minimax risk** is $r_m(\mathcal{P},Q) := \inf_A r_m(A,\mathcal{P},Q)$, the infimum over all algorithms. A lower bound $r_m(\mathcal{P},Q) \geq c$ certifies that *no* algorithm — however clever — achieves quality better than $c$ on every $\mathcal{D}\in\mathcal{P}$; matching it with an upper bound identifies $r_m$ up to constants and certifies that the upper-bound proof technique was not merely loose.
+where $\mathbb{E}_A$ averages over any internal randomization of $A$. The **minimax risk** is $r_m(\mathcal{P},Q) := \inf_A r_m(A,\mathcal{P},Q)$, the infimum over all algorithms.
+
+---
+
+A lower bound $r_m(\mathcal{P},Q) \geq c$ certifies that *no* algorithm — however clever — achieves quality better than $c$ on every $\mathcal{D}\in\mathcal{P}$; matching it with an upper bound identifies $r_m$ up to constants and certifies that the upper-bound proof technique was not merely loose.
 
 The elementary engine of such lower bounds is the **two-point method** (Le Cam's method): to show that $m$ samples do not suffice, exhibit two distributions that are (i) statistically almost indistinguishable from $m$ samples, yet (ii) demand conflicting predictions. Its measure of indistinguishability is the **total variation distance**
 $$\mathrm{TV}(P,Q) := \sup_{E}\big|P(E) - Q(E)\big|,$$
@@ -485,7 +485,7 @@ since $g \leq 1$ makes $(L-1)\,g \leq (L-1)^+$ pointwise (on $\{L \leq 1\}$ the 
 *(ii)* For product distributions of $m$ i.i.d. draws, with $\chi^2(P\|Q) := \mathbb{E}_Q\big[\big(\tfrac{dP}{dQ}-1\big)^2\big]$ the **chi-squared divergence**,
 $$\mathrm{TV}\big(P^{\otimes m},Q^{\otimes m}\big) \;\leq\; \sqrt{\chi^2\big(P^{\otimes m}\|Q^{\otimes m}\big)} \;\leq\; \sqrt{2m\,\chi^2(P\|Q)} \qquad \text{whenever } m\,\chi^2(P\|Q) \leq 1.$$
 
-*(iii)* (Bretagnolle-Huber) With $\mathrm{KL}(P\|Q) := \mathbb{E}_P\big[\log\frac{dP}{dQ}\big]$ the Kullback-Leibler divergence of the PAC-Bayes section,
+*(iii)* (Bretagnolle-Huber) With $\mathrm{KL}(P\|Q) := \mathbb{E}_P\big[\log\frac{dP}{dQ}\big]$ the Kullback-Leibler divergence,
 $$P(W) + Q(W^c) \;\geq\; \tfrac12\,e^{-\mathrm{KL}(P\|Q)}, \qquad \mathrm{KL}\big(P^{\otimes m}\big\|Q^{\otimes m}\big) = m\,\mathrm{KL}(P\|Q).$$
 
 **Proof.** *(i)* By the change-of-measure bound (7.6) with $g := \mathds{1}_W$, $P(W) \geq Q(W) - \mathrm{TV}(P,Q)$, and $Q(W^c) = 1 - Q(W)$; adding the two gives the claim.
@@ -515,6 +515,8 @@ Parts (i) and (ii) control the error probabilities when the two distributions ar
 $$\max_{j\in\{+,-\}}\ \mathbb{E}_{S\sim\mathcal{D}_j^m}\big[R_{\mathcal{D}_j}(A(S)) - R^*_{\mathcal{D}_j}\big] \;\geq\; \frac{\gamma}{4}.$$
 *(ii)* For every $m \geq 1$,
 $$\max_{j\in\{+,-\}}\ P_{S\sim\mathcal{D}_j^m}\big(R_{\mathcal{D}_j}(A(S)) - R^*_{\mathcal{D}_j} \geq \gamma\big) \;\geq\; \tfrac14\,e^{-4m\gamma^2}.$$
+
+---
 
 In words: an algorithm must tell a $(\tfrac12+\tfrac\gamma2)$-biased coin from a $(\tfrac12-\tfrac\gamma2)$-biased one, which requires $\Omega(1/\gamma^2)$ flips for constant confidence, and $\Omega(\log(1/\delta)/\gamma^2)$ flips for confidence $1-\delta$.
 

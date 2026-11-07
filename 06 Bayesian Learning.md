@@ -176,7 +176,247 @@ where $m_{\min} := \min_c m_c$ is the smallest class sample size; the bound hold
 
 $$\epsilon = \sqrt{\frac{\log(2Cd/\delta)}{2m_{\min}}}$$
 
-of its true value. This is a genuine PAC-style guarantee: the sample complexity to achieve a target accuracy $\epsilon$ with confidence $1-\delta$ grows only as $O\big(\tfrac{1}{\epsilon^2}\log(Cd/\delta)\big)$ — logarithmically in the number of features $d$ and classes $C$, the direct benefit of the naive independence assumption reducing the effective number of parameters from exponential to linear in $d$. A uniform bound on the individual parameters like this one does not immediately give an equally tight bound on the resulting classifier's generalization error $R(\widehat{y})$ — the classification decision is a nonlinear function of all $Cd$ parameters at once — but it does show that the *building blocks* of the Naive Bayes classifier concentrate fast, which is the source of its practical robustness even from modest amounts of data.
+of its true value. This is a genuine PAC-style guarantee: the sample complexity to achieve a target accuracy $\epsilon$ with confidence $1-\delta$ grows only as $O\big(\tfrac{1}{\epsilon^2}\log(Cd/\delta)\big)$ — logarithmically in the number of features $d$ and classes $C$, the direct benefit of the naive independence assumption reducing the effective number of parameters from exponential to linear in $d$. It is, however, a guarantee about *parameter estimation*, not about the risk of the classifier: the classification decision is a nonlinear function of all $Cd$ parameters at once, and errors in individual parameters can compensate one another in the argmax. The next section supplies the missing classifier-level analysis, replacing the $Cd$ parameters by the complexity of the set of decision rules they generate.
+
+# Generalization Analysis of Naive Bayes
+
+The Hoeffding argument of the previous subsection controls the $Cd$ estimated probabilities one at a time. That is a useful statement about *parameter estimation*, but it is not a risk bound for the classifier. The classifier is a nonlinear function of all the parameters at once: two parameter vectors can differ substantially while inducing the same decision rule, and small errors in many parameters can compensate one another. The object whose complexity governs generalization is therefore not the parameter vector but the set of decision rules that the parameters generate.
+
+This section carries out the analysis in three steps. First, we show that the Naive Bayes classifier is a multiclass affine predictor, so its decision rules can be studied as a geometric hypothesis class rather than as a product of independent probability estimates. Second, we introduce the Natarajan dimension, the multiclass analogue of the VC dimension, and prove that the Naive Bayes class has Natarajan dimension at most $(C-1)(d+1)$. Third, we combine the multiclass Sauer--Shelah lemma with symmetrization and Massart's lemma to obtain a uniform convergence bound, from which we read off two guarantees: a risk bound for the Naive Bayes maximum-likelihood estimator, and an oracle inequality for empirical risk minimization over the same hypothesis class. Neither guarantee assumes that the data distribution satisfies the Naive Bayes factorization; the factorization is a property of the model, not an assumption about the world.
+
+## Naive Bayes as a Multiclass Affine Predictor
+
+The log-score of class $c$ in the Naive Bayes classifier is
+
+$$\log\pi_c+\sum_{j=1}^d\Big[x_j\log\theta_{j,c}+(1-x_j)\log(1-\theta_{j,c})\Big].$$
+
+Writing
+
+$$w_{j,c}:=\log\frac{\theta_{j,c}}{1-\theta_{j,c}},\qquad b_c:=\log\pi_c+\sum_{j=1}^d\log(1-\theta_{j,c}),$$
+
+turns it into the affine function $b_c+\langle w_c,x\rangle=\langle(b_c,w_c),(1,x)\rangle$. The next definition formalizes the resulting hypothesis classes.
+
+**Definition 8.6.1 (Naive Bayes and affine hypothesis classes).** Let $\mathcal{X}=\{0,1\}^d$, $\mathcal{Y}=[C]$, and $\tilde{x}:=(1,x)\in\mathbb{R}^{d+1}$. For $v=(v_1,\ldots,v_C)\in\mathbb{R}^{C\times(d+1)}$, define $h_v:\mathcal{X}\to\mathcal{Y}$ by
+
+$$h_v(x):=\arg\max_{c\in[C]}\ \langle v_c,\tilde{x}\rangle,$$
+
+with ties broken in favor of the smallest class index. The class $\mathcal{H}_{\mathrm{aff}}:=\{h_v: v\in\mathbb{R}^{C\times(d+1)}\}$ is the class of **multiclass affine predictors**. The **Naive Bayes hypothesis class** $\mathcal{H}_{\mathrm{NB}}$ consists of all $h_\eta$ of the form
+
+$$h_\eta(x):=\arg\max_{c\in[C]}\Big[\log\pi_c+\sum_{j=1}^d\big(x_j\log\theta_{j,c}+(1-x_j)\log(1-\theta_{j,c})\big)\Big],$$
+
+where $\eta=(\pi,\theta)$ ranges over $\pi_c>0$, $\sum_{c=1}^C\pi_c=1$, and $\theta_{j,c}\in(0,1)$ for all $j\in[d]$ and $c\in[C]$, with the same tie-breaking rule.
+
+---
+
+The following proposition shows that the reparameterization is not merely a convenient rewriting: it exhausts the affine class.
+
+**Proposition 8.6.2 (The Naive Bayes and affine classes coincide).** $\mathcal{H}_{\mathrm{NB}}=\mathcal{H}_{\mathrm{aff}}$.
+
+***Proof.*** The inclusion $\mathcal{H}_{\mathrm{NB}}\subseteq\mathcal{H}_{\mathrm{aff}}$ follows from the reparameterization above, with $v_c=(b_c,w_c)$.
+
+For the reverse inclusion, fix $v=(v_1,\ldots,v_C)\in\mathbb{R}^{C\times(d+1)}$ and write $v_c=(v_{c,0},v_{c,1},\ldots,v_{c,d})$. Set
+
+$$\theta_{j,c}:=\frac{1}{1+e^{-v_{c,j}}}\in(0,1),\qquad \beta_c:=\sum_{j=1}^d\log(1-\theta_{j,c}),$$
+
+and
+
+$$\pi_c:=\frac{\exp(v_{c,0}-\beta_c)}{\sum_{c'=1}^C\exp(v_{c',0}-\beta_{c'})}.$$
+
+Then $\pi_c>0$ and $\sum_c\pi_c=1$, so $\eta=(\pi,\theta)$ is a valid Naive Bayes parameter vector. Its score for class $c$ is
+
+$$
+\begin{aligned}
+\log\pi_c+\sum_{j=1}^d\big(x_j\log\theta_{j,c}+(1-x_j)\log(1-\theta_{j,c})\big)
+&=\log\pi_c+\beta_c+\sum_{j=1}^d x_j v_{c,j} \\
+&=v_{c,0}+\sum_{j=1}^d x_j v_{c,j}-\log\Big(\sum_{c'=1}^C e^{v_{c',0}-\beta_{c'}}\Big) \\
+&=\langle v_c,\tilde{x}\rangle-\mathrm{const},
+\end{aligned}
+$$
+
+where the constant does not depend on $c$. Adding the same constant to every class score leaves the argmax and every tie unchanged, so $h_\eta=h_v$. Hence $\mathcal{H}_{\mathrm{aff}}\subseteq\mathcal{H}_{\mathrm{NB}}$, and the two classes are equal. $\square$
+
+Proposition 8.6.2 is the formal content of the familiar observation that binary Naive Bayes is a linear classifier. It also exposes the difference between the number of parameters and the complexity of the decision rules. A Naive Bayes parameter vector has $C-1+Cd$ free coordinates, but the induced rule depends only on the differences between the class scores: adding the same vector to every $v_c$ leaves all comparisons unchanged. The space of score differences has dimension $(C-1)(d+1)$, which is the quantity measured by the next definition. Parameter counting therefore overstates the capacity of the classifier; what matters is the set of decision rules, not the coordinates used to describe it.
+
+## Natarajan Dimension
+
+The VC dimension of Chapter 6 is a binary notion: it asks whether a class can realize all $2^m$ labelings of an $m$-point set. For $C$ classes there are $C^m$ labelings, and requiring all of them is far too strong: even the class of all constant classifiers realizes only $C$ of them. Natarajan's definition replaces the Boolean cube $\{0,1\}^m$ by a Boolean subcube of the $C$-valued labelings. It chooses two witness labels at each point and requires the class to realize every one of the $2^m$ ways of switching between them.
+
+**Definition 8.6.3 (Natarajan shattering and dimension).** Let $\mathcal{H}\subseteq\mathcal{Y}^{\mathcal{X}}$ with $|\mathcal{Y}|=C\ge2$. A set $S=\{x_1,\ldots,x_m\}\subseteq\mathcal{X}$ is **N-shattered** by $\mathcal{H}$ if there exist functions $f_1,f_2:S\to\mathcal{Y}$ with $f_1(x_i)\neq f_2(x_i)$ for every $i\in[m]$ such that for every subset $B\subseteq[m]$ there is $h\in\mathcal{H}$ satisfying
+
+$$h(x_i)=f_1(x_i)\ \text{for } i\in B,\qquad h(x_i)=f_2(x_i)\ \text{for } i\notin B.$$
+
+The **Natarajan dimension** $d_{\mathrm{N}}(\mathcal{H})$ is the largest cardinality of an N-shattered set, with $d_{\mathrm{N}}(\mathcal{H}):=\infty$ if arbitrarily large sets are N-shattered, and with the convention that the supremum over an empty family is $0$.
+
+---
+
+For $C=2$, taking $f_1\equiv1$ and $f_2\equiv0$ on $S$ recovers the usual definition of shattering, so $d_{\mathrm{N}}(\mathcal{H})=d_{VC}(\mathcal{H})$ for binary classes. The definition is due to [Natarajan (1989)](https://doi.org/10.1007/BF00116519)<!-- cite: natarajan1989learning | article | author={Natarajan, Balas K.}; title={On Learning Sets and Functions}; journal={Machine Learning}; year={1989}; volume={4}; number={1}; pages={67--97} -->. For $C>2$, N-shattering is weaker than requiring all $C^m$ labelings, but it is strong enough to force a polynomial growth function (Lemma 8.6.5 below). Unlike a parameter count, $d_{\mathrm{N}}$ is a property of the decision rules and is invariant under reparameterization.
+
+**Theorem 8.6.4 (Natarajan dimension of affine predictors).** For $C\ge2$ and $d\ge1$,
+
+$$d_{\mathrm{N}}(\mathcal{H}_{\mathrm{aff}})\le(C-1)(d+1).$$
+
+***Proof.*** Let $S=\{x_1,\ldots,x_m\}\subseteq\mathcal{X}$ be N-shattered by $\mathcal{H}_{\mathrm{aff}}$, with witness functions $f_1,f_2:S\to[C]$. For $x\in S$ and $c\in[C]$, let $\Psi(x,c)\in\mathbb{R}^{C\times(d+1)}$ be the matrix whose $c$-th row is $\tilde{x}$ and whose other rows are zero; then $\langle v,\Psi(x,c)\rangle=\langle v_c,\tilde{x}\rangle$ is the score of class $c$ at $x$. Define
+
+$$z_i:=\Psi(x_i,f_1(x_i))-\Psi(x_i,f_2(x_i)),\qquad i\in[m].$$
+
+Since $f_1(x_i)\neq f_2(x_i)$, we have $z_i\neq0$. We claim that $z_1,\ldots,z_m$ are linearly independent.
+
+Suppose otherwise, so that $\sum_{i=1}^m\alpha_i z_i=0$ for some coefficients $\alpha_i\in\mathbb{R}$, not all zero, and let $B:=\{i\in[m]:\alpha_i>0\}$. By N-shattering, there are hypotheses $v_B$ and $v_{B^c}$ realizing the two complementary labelings: $h_{v_B}(x_i)=f_1(x_i)$ for $i\in B$ and $h_{v_B}(x_i)=f_2(x_i)$ for $i\notin B$, and the opposite assignment for $v_{B^c}$. If $h_v(x_i)=f_1(x_i)$, then $f_1(x_i)$ is a maximizer of the scores at $x_i$, so $\langle v,z_i\rangle\ge0$; if $h_v(x_i)=f_2(x_i)$, then $\langle v,z_i\rangle\le0$. Hence
+
+$$
+0=\Big\langle v_B,\sum_{i=1}^m\alpha_i z_i\Big\rangle
+=\sum_{i=1}^m\alpha_i\langle v_B,z_i\rangle\ge0,
+$$
+
+where each term is nonnegative because $\alpha_i>0$ on $B$ and $\alpha_i\le0$ outside $B$. Thus every term vanishes, and $\langle v_B,z_i\rangle=0$ whenever $\alpha_i\neq0$. Repeating the computation with $B$ replaced by $B^c$ (the terms are then nonpositive) gives $\langle v_{B^c},z_i\rangle=0$ for every $i$ with $\alpha_i\neq0$.
+
+At such an $i$, both $v_B$ and $v_{B^c}$ assign equal scores to $f_1(x_i)$ and $f_2(x_i)$. Each hypothesis predicts one of these two labels at $x_i$, so both labels are tied at the maximum, and the fixed tie-breaking rule returns the same one of them for both hypotheses. But the labelings realized by $v_B$ and $v_{B^c}$ are complementary, so they prescribe opposite labels at every point of $S$, and in particular at every $i$ with $\alpha_i\neq0$. This is a contradiction. Hence $z_1,\ldots,z_m$ are linearly independent.
+
+Finally, the sum of the rows of $z_i$ is $\tilde{x}_i-\tilde{x}_i=0$, so $z_i$ belongs to the subspace
+
+$$\mathcal{U}:=\Big\{u\in\mathbb{R}^{C\times(d+1)}:\sum_{c=1}^C u_c=0\Big\}.$$
+
+The map $u\mapsto\sum_{c=1}^C u_c$ is onto $\mathbb{R}^{d+1}$, so $\dim\mathcal{U}=C(d+1)-(d+1)=(C-1)(d+1)$. Linear independence gives $m\le\dim\mathcal{U}$. Since this holds for every N-shattered $S$, the claim follows. $\square$
+
+Together with Proposition 8.6.2, Theorem 8.6.4 gives
+
+$$d_{\mathrm{N}}(\mathcal{H}_{\mathrm{NB}})=d_{\mathrm{N}}(\mathcal{H}_{\mathrm{aff}})\le(C-1)(d+1).$$
+
+This is the multiclass analogue of the VC dimension $d+1$ of affine binary classifiers. The bound is linear in the number of features and in the number of classes; the exponential dependence on $d$ that a full contingency table would suggest is absent. It is a bound on the *decision rules*, not on the $Cd+C-1$ parameters of the Naive Bayes parameterization.
+
+## Multiclass Uniform Convergence
+
+We now pass from combinatorial capacity to a risk bound. Recall from Definition 6.4.4 that the growth function of a hypothesis class $\mathcal{H}$ is
+
+$$\tau_{\mathcal{H}}(m):=\max_{S\subseteq\mathcal{X},\,|S|=m}|\mathcal{H}_S|,\qquad \mathcal{H}_S:=\{(h(x_1),\ldots,h(x_m)):h\in\mathcal{H}\}.$$
+
+Nothing in that definition uses binary labels; it applies verbatim to $C$-valued classes. The multiclass Sauer--Shelah lemma bounds $\tau_{\mathcal{H}}$ in terms of the Natarajan dimension.
+
+**Lemma 8.6.5 (Multiclass Sauer--Shelah).** Let $\mathcal{H}\subseteq[C]^{\mathcal{X}}$ with $d_{\mathrm{N}}(\mathcal{H})=d_{\mathrm{N}}<\infty$. Then for every $m\ge1$,
+
+$$\tau_{\mathcal{H}}(m)\le\sum_{i=0}^{\min\{d_{\mathrm{N}},m\}}\binom{m}{i}(C-1)^i.$$
+
+In particular, for $m\ge d_{\mathrm{N}}$,
+
+$$\tau_{\mathcal{H}}(m)\le\Big(\frac{e(C-1)m}{d_{\mathrm{N}}}\Big)^{d_{\mathrm{N}}}.$$
+
+---
+
+Lemma 8.6.5 is the multiclass counterpart of the Sauer--Shelah--Perles lemma (Lemma 6.4.8). The sum has the same shape, with the binary factor $1$ replaced by the $C-1$ alternative labels available each time the Natarajan dimension is charged; for $C=2$ it reduces exactly to Lemma 6.4.8. The result is due to [Natarajan (1989)](https://doi.org/10.1007/BF00116519)<!-- cite: natarajan1989learning | article | author={Natarajan, Balas K.}; title={On Learning Sets and Functions}; journal={Machine Learning}; year={1989}; volume={4}; number={1}; pages={67--97} -->; a complete proof appears in [Shalev-Shwartz & Ben-David (2014)](https://doi.org/10.1017/CBO9781107298019)<!-- cite: shalev2014understanding | book | author={Shalev-Shwartz, Shai and Ben-David, Shai}; title={Understanding Machine Learning: From Theory to Algorithms}; publisher={Cambridge University Press}; year={2014} -->, Chapter 29. The closed form follows from the sum by the same binomial estimate as in Lemma 6.4.8, using $m\ge d_{\mathrm{N}}$ and $C-1\ge1$.
+
+**Theorem 8.6.6 (Multiclass uniform convergence).** Let $\mathcal{H}\subseteq[C]^{\mathcal{X}}$, let $\ell$ be the zero-one loss, and let $\tau_{\mathcal{H}}$ be the growth function. For every distribution $\mathcal{D}$ on $\mathcal{X}\times[C]$ and every $\delta\in(0,1)$, with probability at least $1-\delta$ over $S\sim\mathcal{D}^m$,
+
+$$\sup_{h\in\mathcal{H}}\big|R(h)-\widehat{R}_S(h)\big|\le\sqrt{\frac{16\log\big(2\tau_{\mathcal{H}}(m)\big)+\log(1/\delta)}{m}}.$$
+
+***Proof.*** Write $\Phi(S):=\sup_{h\in\mathcal{H}}|R(h)-\widehat{R}_S(h)|$.
+
+*Step 1: concentration around the mean.* Changing one example of $S$ changes $\widehat{R}_S(h)$ by at most $1/m$ for every $h$ simultaneously, hence changes $\Phi(S)$ by at most $1/m$. Thus $\Phi$ has bounded differences $c_i=1/m$ and $\sum_{i=1}^m c_i^2=1/m$. McDiarmid's inequality (Theorem 7.1.1) gives, with probability at least $1-\delta$,
+
+$$\Phi(S)\le\mathbb{E}_S[\Phi(S)]+\sqrt{\frac{\log(1/\delta)}{2m}}.$$
+
+*Step 2: symmetrization.* Let $S'=\{(x_i',y_i')\}_{i=1}^m$ be an independent ghost sample and let $\sigma_1,\ldots,\sigma_m$ be independent Rademacher signs. Jensen's inequality and the symmetry of the joint law of $(S,S')$ under independent swaps give
+
+$$
+\begin{aligned}
+\mathbb{E}_S[\Phi(S)]
+&=\mathbb{E}_S\Big[\sup_{h\in\mathcal{H}}\big|\mathbb{E}_{S'}\big[\widehat{R}_{S'}(h)-\widehat{R}_S(h)\big]\big|\Big] \\
+&\le\mathbb{E}_{S,S'}\Big[\sup_{h\in\mathcal{H}}\Big|\frac1m\sum_{i=1}^m\big(\ell(y_i',h(x_i'))-\ell(y_i,h(x_i))\big)\Big|\Big] \\
+&=\mathbb{E}_{S,S',\sigma}\Big[\sup_{h\in\mathcal{H}}\Big|\frac1m\sum_{i=1}^m\sigma_i\big(\ell(y_i',h(x_i'))-\ell(y_i,h(x_i))\big)\Big|\Big] \\
+&\le 2\,\mathbb{E}_{S,\sigma}\Big[\sup_{h\in\mathcal{H}}\Big|\frac1m\sum_{i=1}^m\sigma_i\,\ell(y_i,h(x_i))\Big|\Big].
+\end{aligned}
+$$
+
+*Step 3: Massart's lemma.* Condition on $S$. For each $h$, let $a^h:=(\ell(y_1,h(x_1)),\ldots,\ell(y_m,h(x_m)))\in[0,1]^m$. As $h$ ranges over $\mathcal{H}$, the vectors $a^h$ take at most $\tau_{\mathcal{H}}(m)$ distinct values, and each has Euclidean norm at most $\sqrt m$. Since the supremum in Step 2 is inside an absolute value, apply Massart's lemma (Lemma 7.3.3) to the symmetrized set $A:=\{a^h:h\in\mathcal{H}\}\cup\{-a^h:h\in\mathcal{H}\}$, which has at most $2\tau_{\mathcal{H}}(m)$ elements:
+
+$$\mathbb{E}_\sigma\Big[\sup_{h\in\mathcal{H}}\Big|\frac1m\sum_{i=1}^m\sigma_i a_i^h\Big|\Big]=\mathbb{E}_\sigma\Big[\max_{a\in A}\frac1m\sum_{i=1}^m\sigma_i a_i\Big]\le\sqrt{\frac{2\log\big(2\tau_{\mathcal{H}}(m)\big)}{m}}.$$
+
+Hence $\mathbb{E}_S[\Phi(S)]\le 2\sqrt{2\log(2\tau_{\mathcal{H}}(m))/m}=\sqrt{8\log(2\tau_{\mathcal{H}}(m))/m}$.
+
+*Step 4: assembling the constants.* Combining Steps 1 and 3 and using $(a+b)^2\le2a^2+2b^2$,
+
+$$
+\Phi(S)\le\sqrt{\frac{8\log(2\tau_{\mathcal{H}}(m))}{m}}+\sqrt{\frac{\log(1/\delta)}{2m}}
+\le\sqrt{\frac{16\log(2\tau_{\mathcal{H}}(m))+\log(1/\delta)}{m}},
+$$
+
+which is the claim. $\square$
+
+The bound is stated with $\tau_{\mathcal{H}}(m)$ rather than $\tau_{\mathcal{H}}(2m)$. The proof uses the growth function at $m$ because the symmetrization is applied directly to the $m$-sample; the ghost sample in Theorem 6.4.9 was counted through restrictions on $2m$ points, which is why that earlier bound involved $\tau_{\mathcal{H}}(2m)$. Since $\tau_{\mathcal{H}}$ is nondecreasing, replacing $m$ by $2m$ only weakens the bound.
+
+**Corollary 8.6.7 (PAC risk bound for the Naive Bayes class).** Let $d_{\mathrm{N}}:=(C-1)(d+1)$ and $m\ge d_{\mathrm{N}}$. For every distribution $\mathcal{D}$ and every $\delta\in(0,1)$, with probability at least $1-\delta$, simultaneously for every $h\in\mathcal{H}_{\mathrm{NB}}$,
+
+$$R(h)\le\widehat{R}_S(h)+\sqrt{\frac{16d_{\mathrm{N}}\log\big(2e(C-1)m/d_{\mathrm{N}}\big)+\log(1/\delta)}{m}}.$$
+
+***Proof.*** By Proposition 8.6.2 and Theorem 8.6.4, $d_{\mathrm{N}}(\mathcal{H}_{\mathrm{NB}})\le d_{\mathrm{N}}$. Lemma 8.6.5 with $m\ge d_{\mathrm{N}}$ gives
+
+$$\tau_{\mathcal{H}_{\mathrm{NB}}}(m)\le\Big(\frac{e(C-1)m}{d_{\mathrm{N}}}\Big)^{d_{\mathrm{N}}}.$$
+
+Since $d_{\mathrm{N}}\ge1$,
+
+$$\log\big(2\tau_{\mathcal{H}_{\mathrm{NB}}}(m)\big)\le\log2+d_{\mathrm{N}}\log\frac{e(C-1)m}{d_{\mathrm{N}}}\le d_{\mathrm{N}}\log\frac{2e(C-1)m}{d_{\mathrm{N}}}.$$
+
+Substituting into Theorem 8.6.6 gives the claim. $\square$
+
+For brevity, denote the deviation term in Corollary 8.6.7 by
+
+$$\epsilon_m(\delta):=\sqrt{\frac{16d_{\mathrm{N}}\log\big(2e(C-1)m/d_{\mathrm{N}}\big)+\log(1/\delta)}{m}}.$$
+
+The bound is distribution-free: it holds for every $\mathcal{D}$ on $\mathcal{X}\times[C]$, whether or not the conditional independence assumption is true. In the regime of interest the logarithmic factor is negligible, and the deviation scale is
+
+$$\epsilon_m(\delta)=O\!\left(\sqrt{\frac{(C-1)(d+1)\log\big(Cm/((C-1)(d+1))\big)+\log(1/\delta)}{m}}\right).$$
+
+## The Naive Bayes MLE and ERM over the Same Class
+
+We now apply the uniform bound to the two estimators studied in this chapter. The first is the maximum-likelihood estimator. Under the Naive Bayes factorization, the likelihood decouples across classes and features, and its maximizer is given by the per-class frequency counts
+
+$$\widehat\pi_c=\frac{m_c}{m},\quad \widehat\theta_{j,c}=\frac{\sum_{i:\,y_i=c}x_{ij}}{m_c},\quad m_c:=\sum_{i:\,y_i=c}1.$$
+
+This is the estimator analyzed earlier in the chapter. When every count is positive, it lies in the interior of the parameter space and therefore induces a member of $\mathcal{H}_{\mathrm{NB}}$. When some count is zero, the corresponding log-score is infinite; the standard remedy is add-$\alpha$ smoothing,
+
+$$\widetilde\theta_{j,c}=\frac{\sum_{i:\,y_i=c}x_{ij}+\alpha}{m_c+2\alpha},\qquad \widetilde\pi_c=\frac{m_c+\alpha}{m+C\alpha},\qquad \alpha>0,$$
+
+which is also what the implementation below uses. The risk bound applies to any data-dependent member of $\mathcal{H}_{\mathrm{NB}}$, so it covers both the interior MLE and its smoothed version.
+
+**Corollary 8.6.8 (Risk bound for the Naive Bayes MLE).** Let $\widehat\eta_{\mathrm{MLE}}$ be any maximum-likelihood estimator of the Naive Bayes parameters whose coordinates lie in the interior of the parameter space, or let it be the add-$\alpha$ smoothed estimator. Then, with probability at least $1-\delta$,
+
+$$R\big(h_{\widehat\eta_{\mathrm{MLE}}}\big)\le\widehat{R}_S\big(h_{\widehat\eta_{\mathrm{MLE}}}\big)+\epsilon_m(\delta).$$
+
+***Proof.*** The estimator is a data-dependent member of $\mathcal{H}_{\mathrm{NB}}$, and Corollary 8.6.7 is uniform over the class. $\square$
+
+Corollary 8.6.8 is the missing risk bound for the vanilla Naive Bayes estimator. It is a *generalization* guarantee: it compares the true and empirical risks of the estimator actually returned, but it does not compare that estimator with the best hypothesis in $\mathcal{H}_{\mathrm{NB}}$. The latter is the content of the next result.
+
+The second estimator minimizes the empirical zero-one risk over the same class:
+
+$$\widehat h_{\mathrm{ERM}}\in\arg\min_{h\in\mathcal{H}_{\mathrm{NB}}}\ \widehat{R}_S(h).$$
+
+This is a different optimization problem from maximum likelihood. The likelihood objective is a product of per-class and per-feature terms and decomposes into independent one-dimensional estimation problems; the zero-one objective couples all features and all classes through the argmax that defines $h_\eta$. In general, $h_{\widehat\eta_{\mathrm{MLE}}}$ is not an empirical risk minimizer over $\mathcal{H}_{\mathrm{NB}}$. Both estimators nevertheless live in the same hypothesis class, so the same capacity term controls both.
+
+**Theorem 8.6.9 (ERM oracle inequality over the Naive Bayes class).** Let $\widehat h_{\mathrm{ERM}}\in\arg\min_{h\in\mathcal{H}_{\mathrm{NB}}}\widehat{R}_S(h)$. Then, with probability at least $1-\delta$,
+
+$$R(\widehat h_{\mathrm{ERM}})\le\inf_{h\in\mathcal{H}_{\mathrm{NB}}}R(h)+2\epsilon_m(\delta).$$
+
+***Proof.*** On the event of Corollary 8.6.7, for every $h\in\mathcal{H}_{\mathrm{NB}}$,
+
+$$R(\widehat h_{\mathrm{ERM}})\le\widehat{R}_S(\widehat h_{\mathrm{ERM}})+\epsilon_m(\delta)\le\widehat{R}_S(h)+\epsilon_m(\delta)\le R(h)+2\epsilon_m(\delta),$$
+
+where the middle inequality uses the definition of $\widehat h_{\mathrm{ERM}}$. Taking the infimum over $h\in\mathcal{H}_{\mathrm{NB}}$ gives the claim. $\square$
+
+If the infimum in Theorem 8.6.9 is not attained, the same argument applies to any $\epsilon$-approximate empirical risk minimizer, at the price of adding $\epsilon$ to the right-hand side. The theorem is a *learning* guarantee: it says that ERM over $\mathcal{H}_{\mathrm{NB}}$ is agnostic PAC learnable relative to that class. It does not say that ERM is computationally efficient. Minimizing the zero-one loss over $\mathcal{H}_{\mathrm{NB}}$ is a nonconvex combinatorial problem in general, whereas maximum likelihood is closed-form. This is the precise sense in which the two estimators trade statistical optimality for computational tractability.
+
+The two guarantees are summarized in the following table.
+
+| | Naive Bayes MLE | ERM over $\mathcal{H}_{\mathrm{NB}}$ |
+|:--|:--|:--|
+| objective | $\sum_i\log P_\eta(x_i,y_i)$ | $\sum_i\mathds{1}\{h_\eta(x_i)\ne y_i\}$ |
+| computation | closed-form per-class counts | coupled; nonconvex in general |
+| guarantee | $R\le\widehat{R}_S+\epsilon_m(\delta)$ | $R\le\inf_{\mathcal{H}_{\mathrm{NB}}}R+2\epsilon_m(\delta)$ |
+| role | the estimator actually used | oracle benchmark and learning guarantee |
+
+The ERM guarantee is relative to $\mathcal{H}_{\mathrm{NB}}$, not to the Bayes risk. If the true distribution factorizes as $P(x\mid y)=\prod_jP(x_j\mid y)$, then the Bayes classifier belongs to $\mathcal{H}_{\mathrm{NB}}$, and the infimum in Theorem 8.6.9 equals the Bayes risk; the bound then controls the excess risk over the best possible predictor. If the distribution does not factorize, the infimum may be strictly larger than the Bayes risk, and the difference is the approximation error of the Naive Bayes model. In neither case does the *bound itself* require the factorization: Corollary 8.6.7 and Theorem 8.6.9 are distribution-free, and the factorization enters only in the interpretation of the approximation error.
+
+The parameter-level Hoeffding bound derived earlier and the classifier-level bound of this section are complementary. The former controls the estimation error of each conditional probability and explains why the Naive Bayes estimates are stable; the latter controls the risk of the decision rule and explains why the classifier generalizes. Neither implies the other: parameter errors can compensate in the argmax, and a small risk does not require the individual probabilities to be accurate. What the capacity analysis adds is the correct dependence on the *number of decision rules*, which for Naive Bayes is governed by $(C-1)(d+1)$ rather than by the $Cd+C-1$ parameters or by the exponentially many entries of a full contingency table.
+
+Two extensions are immediate. For categorical features with $V_j$ values, one-hot encoding replaces $d$ by $\sum_j(V_j-1)$ and the same bound holds with this effective dimension. For Gaussian Naive Bayes with a shared covariance matrix across classes, the log-score is affine in $x$, so the analysis applies unchanged; with class-specific covariance matrices the score is quadratic, the relevant Natarajan dimension is of order $Cd^2$, and the rate changes accordingly. These variants are left as exercises.
 
 # Implementation: Naive Bayes on a Real Data Set
 

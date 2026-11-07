@@ -14,14 +14,14 @@ Bagging takes a low-bias, high-variance base learner and averages its fluctuatio
 
 **Definition 12.1.1 (Bootstrap sample).** Given $S = \{(x_i,y_i)\}_{i=1}^m$, a **bootstrap sample** of $S$ is
 $$S' := \{(x_{j_k}, y_{j_k}) : j_k \sim \mathcal{U}(\{1,\ldots,m\}),\ k = 1,\ldots,m\},$$
-i.e. $m$ indices drawn uniformly **with replacement**, so an index may repeat.
+i.e. $m$ indices drawn uniformly **with replacement**.
 
 **Definition 12.1.2 (Bagged predictor).** Let $S_1,\ldots,S_T$ be bootstrap samples of $S$ and $h_{S_t} \gets A(S_t)$. The **bagged predictor** is
 $$h_{S_1,\ldots,S_T}(x) := \frac{1}{T}\sum_{t=1}^T h_{S_t}(x).$$
 
-Two elementary facts explain the benefit of averaging, both stated for the idealized case of $T$ **independent** samples $S_1,\ldots,S_T \sim \mathcal{D}^m$; bootstrapping approximates this by reusing one $S$, at the cost of correlation between the members, which is why the gains below are real but attenuated in practice.
-
 ---
+
+Two elementary facts explain the benefit of averaging, both stated for the idealized case of $T$ **independent** samples $S_1,\ldots,S_T \sim \mathcal{D}^m$; bootstrapping approximates this by reusing one $S$, at the cost of correlation between the members, which is why the gains below are real but attenuated in practice.
 
 **Proposition 12.1.3 (Averaging preserves bias and divides variance).** Let $h_{S_1},\ldots,h_{S_T}$ be i.i.d. as functions of independent samples $S_1,\ldots,S_T\sim\mathcal{D}^m$. Then for every fixed $x$,
 $$\begin{gathered}
@@ -61,6 +61,8 @@ Definition 12.2.1 is the *empirical* form of weak learnability, stated over rewe
 
 **Definition 12.2.2 (Class of $T$-term linear combinations).** For a base class $\mathcal{H}_0$,
 $$L(\mathcal{H}_0, T) := \Big\{ x \mapsto \mathrm{sign}\Big(\sum_{t=1}^T w_t h_t(x)\Big) \;:\; w \in \mathbb{R}^T,\ h_1,\ldots,h_T \in \mathcal{H}_0 \Big\}.$$
+
+---
 
 $\mathcal{H}_0 \subseteq L(\mathcal{H}_0,1) \subseteq L(\mathcal{H}_0,2) \subseteq \cdots$, so the ensemble class is a **nested family** indexed by $T$ — precisely the setting of nonuniform learnability and SRM (Chapter 6), with the number of rounds $T$ playing the role that the leaf budget played for decision trees in Chapter 9.
 
@@ -127,7 +129,7 @@ This is the theorem that made boosting famous: a learner that can only beat a co
 
 ### Account 1: the VC dimension of $L(\mathcal{H}_0,T)$ grows with $T$
 
-**Lemma 12.2.5.** Let $d_0 := d_{VC}(\mathcal{H}_0) < \infty$ (not to be confused with the feature dimension $d$). Then
+**Lemma 12.2.5.** Let $d_0 := d_{VC}(\mathcal{H}_0) < \infty$. Then
 $$
 \begin{aligned}
 \tau_{L(\mathcal{H}_0,T)}(m) &\;\leq\; \tau_{\mathcal{H}_0}(m)^T \cdot \Big(\frac{em}{T}\Big)^{T} \;\leq\; \Big(\frac{em}{d_0}\Big)^{d_0T}\Big(\frac{em}{T}\Big)^{T}, \\
@@ -162,7 +164,7 @@ Taking the supremum over $a \in \mathrm{conv}(A)$ and then $\mathbb{E}_\sigma$ o
 
 ---
 
-**Theorem 12.2.7 (Margin bound for boosting).** Let $\mathcal{H}_0$ be symmetric with values in $\{-1,+1\}$, fix a **margin threshold** $\nu \in (0,1]$ — a free parameter of the bound, unrelated to the weak-learning parameter $\gamma$ of Definition 12.2.1 — and let $\bar f \in \mathrm{conv}(\mathcal{H}_0)$ be arbitrary. Then with probability at least $1-\delta$ over $S \sim \mathcal{D}^m$, simultaneously for every such $\bar f$,
+**Theorem 12.2.7 (Margin bound for boosting).** Let $\mathcal{H}_0$ be symmetric with values in $\{-1,+1\}$, fix a **margin threshold** $\nu \in (0,1]$ and let $\bar f \in \mathrm{conv}(\mathcal{H}_0)$ be arbitrary. Then with probability at least $1-\delta$ over $S \sim \mathcal{D}^m$, simultaneously for every such $\bar f$,
 $$
 \begin{aligned}
 R\big(\mathrm{sign}(\bar f)\big) &\;=\; P_{(x,y)\sim\mathcal{D}}\big(y\,\bar f(x) \leq 0\big) \;\leq\; \underbrace{\frac{1}{m}\sum_{i=1}^m \mathds{1}\big(y_i \bar f(x_i) \leq \nu\big)}_{\text{fraction of training margins} \,\leq\, \nu} \\

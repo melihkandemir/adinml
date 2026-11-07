@@ -12,6 +12,8 @@
 
 **Definition:** “A computer program is said to learn from experience E with respect to some class of tasks T and performance measure P, if its performance at tasks in T, as measured by P, improves with experience E”. [Mitchell, 1997](http://www.cs.cmu.edu/~tom/mlbook.html)<!-- cite: mitchell1997ml | book | author={Mitchell, Tom M.}; title={Machine Learning}; publisher={McGraw-Hill}; year={1997} -->
 
+---
+
 (Mitchell's $P$ for "performance measure" is the only place in these notes where the letter $P$ does not denote a probability; from the next section on we call it the **loss** $\ell$ and the **risk** $R$.)
 
 **Purpose:** Designing algorithms to solve T with maximum P and minimum:
