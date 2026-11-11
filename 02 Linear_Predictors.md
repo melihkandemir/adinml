@@ -192,7 +192,7 @@ where the abbreviation $\text{s.t.}$ stands for **subject to**, meaning that we 
 
 $$w_S := \arg \min_w \max_{\lambda \geq 0} \frac{1}{m} \sum_{i \in [m]} (w^\top x_i - y_i)^2 + \lambda (||w||_p^p - \eta)$$
 
-where $\lambda \geq 0$ is the **Lagrange multiplier** of the constraint — a standard device from constrained optimization: instead of enforcing the budget $\eta$ explicitly, we allow the constraint to be violated but charge a price $\lambda$ per unit of violation, and let the minimization itself decide how much violation is worth paying for. For every budget $\eta$ there is a $\lambda$ whose unconstrained problem has the same solution. Fixing $\lambda$ instead of $\eta$ and dropping the constant $\lambda \eta$ gives the **regularized least squares** objective:
+where $\lambda \geq 0$ is the **Lagrange multiplier** of the constraint — a standard device from constrained optimization: instead of enforcing the budget $\eta$ explicitly, we allow the constraint to be violated but penalize each unit of violation by $\lambda$, and let the minimization itself decide how much violation to permit. For every budget $\eta$ there is a $\lambda$ whose unconstrained problem has the same solution. Fixing $\lambda$ instead of $\eta$ and dropping the constant $\lambda \eta$ gives the **regularized least squares** objective:
 
 $$w_S := \arg \min_w  \underbrace{\frac{1}{m} \sum_{i \in [m]} (w^\top x_i - y_i)^2}_{\widehat{R}_S(w)} + \lambda ||w||_p^p.$$
 

@@ -1,0 +1,44 @@
+% Standalone TikZ figure: a decision tree and the recursive partition it induces.
+% \input from the chapter's raw-LaTeX block; not rendered by Obsidian.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=0.92, >=stealth]
+    % ---- Left panel: the partition of the feature space ----
+    \fill[mondrianblue!30]   (0,0)   rectangle (2,1.5);
+    \fill[mondrianred!30]    (0,1.5) rectangle (2,3);
+    \fill[mondrianyellow!45] (2,0)   rectangle (4,2);
+    \fill[black!8]           (2,2)   rectangle (4,3);
+
+    \draw[thick] (2,0) -- (2,3);
+    \draw[thick] (0,1.5) -- (2,1.5);
+    \draw[thick] (2,2) -- (4,2);
+    \draw[thick] (0,0) rectangle (4,3);
+
+    \node at (1,0.75)  {$R_A$};
+    \node at (1,2.25)  {$R_B$};
+    \node at (3,1)     {$R_C$};
+    \node at (3,2.5)   {$R_D$};
+
+    \draw[->] (0,0) -- (4.5,0) node[below] {$x_1$};
+    \draw[->] (0,0) -- (0,3.5) node[left]  {$x_2$};
+
+    % ---- Right panel: the tree that generates the partition ----
+    \node (root) at (7.5,2.7) {$x_1 \leq 2?$};
+    \node (l)    at (5.9,1.6) {$x_2 \leq 1.5?$};
+    \node (r)    at (9.1,1.6) {$x_2 \leq 2?$};
+
+    \node[draw, rounded corners, fill=mondrianblue!30,   inner sep=2pt] (A) at (5.1,0.4) {$R_A$};
+    \node[draw, rounded corners, fill=mondrianred!30,    inner sep=2pt] (B) at (6.7,0.4) {$R_B$};
+    \node[draw, rounded corners, fill=mondrianyellow!45, inner sep=2pt] (C) at (8.3,0.4) {$R_C$};
+    \node[draw, rounded corners, fill=black!8,           inner sep=2pt] (D) at (9.9,0.4) {$R_D$};
+
+    \draw[->] (root) -- node[midway, above left,  font=\scriptsize] {yes} (l);
+    \draw[->] (root) -- node[midway, above right, font=\scriptsize] {no}  (r);
+    \draw[->] (l) -- node[midway, above left,  font=\scriptsize] {yes} (A);
+    \draw[->] (l) -- node[midway, above right, font=\scriptsize] {no}  (B);
+    \draw[->] (r) -- node[midway, above left,  font=\scriptsize] {yes} (C);
+    \draw[->] (r) -- node[midway, above right, font=\scriptsize] {no}  (D);
+\end{tikzpicture}
+\caption[Recursive partition induced by a decision tree.]{A decision tree and the recursive partition it induces. Left: each internal node contributes one axis-aligned split, producing the four regions $R_A$ through $R_D$. Right: the same tests organized as a tree. The test is node-specific: the root tests $x_1 \leq 2$, the left child tests $x_2 \leq 1.5$, and the right child tests $x_2 \leq 2$. Every root-to-leaf path is the intersection of the half-spaces on that path, which is exactly the region $R_u$ defined in the text.}
+\label{fig:decision-tree-partition}
+\end{figure}

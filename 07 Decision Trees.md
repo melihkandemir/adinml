@@ -4,39 +4,64 @@ Every hypothesis class we have used so far predicts through a fixed algebraic fo
 
 A decision tree is a rooted tree in which:
 
-* every **internal node** $v$ is labeled with a **splitting rule** $\phi_v: \mathcal{X} \rightarrow \{1,\ldots,k_v\}$ that routes an input $x$ to one of $v$'s $k_v$ children — for the binary trees we focus on here, $k_v=2$ and $\phi_v(x) := \mathds{1}(x_j \leq t)$ for some feature index $j$ and threshold $t$ (or $\phi_v(x) := \mathds{1}(x_j = a)$ for a categorical feature taking the value $a$),
+* every **internal node** $v$ is labeled with a **splitting rule** $\phi_v: \mathcal{X} \rightarrow \{1,\ldots,k_v\}$ that routes an input $x$ to one of $v$'s $k_v$ children. We focus on binary trees, $k_v=2$, and on two rule types: for a real-valued feature, $\phi_v(x) := \mathds{1}\big(x_{j(v)} \leq t_v\big)$ for a feature index $j(v) \in [d]$ and a node-specific threshold $t_v \in \mathbb{R}$; for a categorical feature, $\phi_v(x) := \mathds{1}\big(x_{j(v)} = a_v\big)$ for a node-specific category $a_v$. The index $j(v)$, the threshold $t_v$, and the category $a_v$ are node-specific: each internal node chooses its own test, and two nodes may test the same feature at different thresholds,
 * every **leaf** $u$ is labeled with a prediction $c_u \in \mathcal{Y}$.
 
 A tree $T$ computes a hypothesis $h_T: \mathcal{X} \rightarrow \mathcal{Y}$ by routing $x$ from the root, following $\phi_v(x)$ at each internal node $v$, until it reaches a leaf $u$, and outputting $h_T(x) := c_u$. Since each leaf's region is exactly the intersection of the splitting rules on the path from the root, the collection of leaves of $T$ partitions $\mathcal{X}$ into disjoint axis-aligned regions, and $h_T$ is piecewise constant on this partition. The **hypothesis class of decision trees**, $\mathcal{H}_{\text{tree}}$, is the union of $h_T$ over all finite binary trees $T$ built from the allowed splitting rules — an infinite, nonuniform hypothesis class in the sense of Chapter 6, since larger trees induce finer partitions and hence more expressive hypotheses.
 
-Formally, then, a decision tree instantiates the general recursive partitioning scheme
+Formally, a decision tree instantiates the general recursive partitioning scheme
 
-$$\begin{gathered}
-h_T(x) = \sum_{u \in \mathrm{leaves}(T)} c_u \cdot \mathds{1}\big(x \in R_u\big), \\
-R_u := \bigcap_{v \in \mathrm{path}(u)} \phi_v(x)\text{-consistent half-space at } v,
-\end{gathered}$$
+$$h_T(x) = \sum_{u \in \mathrm{leaves}(T)} c_u \cdot \mathds{1}\big(x \in R_u\big),$$
 
-where $\mathrm{path}(u)$ is the sequence of internal nodes from the root to leaf $u$, and $\{R_u\}_{u \in \mathrm{leaves}(T)}$ partitions $\mathcal{X}$.
+where the region of leaf $u$ is obtained by intersecting the half-spaces selected along its path. Let $v_L$ and $v_R$ denote the left and right child of an internal node $v$, and let $\mathrm{leaves}(v)$ denote the leaves of the subtree rooted at $v$. For threshold splits,
+
+$$R_u := \bigcap_{v \in \mathrm{path}(u)} \begin{cases} \{x \in \mathcal{X} : x_{j(v)} \leq t_v\}, & u \in \mathrm{leaves}(v_L), \\ \{x \in \mathcal{X} : x_{j(v)} > t_v\}, & u \in \mathrm{leaves}(v_R), \end{cases}$$
+
+and for categorical splits the same display holds with $=$ and $\neq$ replacing $\leq$ and $>$. The family $\{R_u\}$ over $u \in \mathrm{leaves}(T)$ partitions $\mathcal{X}$.
+
+Figure 9.1 displays the two objects side by side: the recursive partition of a two-dimensional feature space and the tree that generates it. Figure 9.2 displays the graph of the resulting predictor, a piecewise-constant surface whose plateaus are the leaf predictions. The construction is the one illustrated in [Hastie et al. (2009)](https://doi.org/10.1007/978-0-387-84858-7)<!-- cite: hastie2009elements | book | author={Hastie, Trevor and Tibshirani, Robert and Friedman, Jerome}; title={The Elements of Statistical Learning: Data Mining, Inference, and Prediction}; publisher={Springer}; year={2009}; edition={2} -->, Figures 9.2 and 9.3, redrawn here in the notation of this chapter.
+
+```{=latex}
+\input{fig/decision_tree_partition.tex}
+```
+
+```{=latex}
+\input{fig/decision_tree_surface.tex}
+```
 
 # Growing a Tree: A Greedy ERM Surrogate
 
-Given a training set $S$, ERM over $\mathcal{H}_{\text{tree}}$ would search over all trees for the one minimizing $\widehat{R}_S(h_T)$. This is computationally intractable — even fixing the tree's shape, choosing the best splits jointly is NP-hard. In practice, we build the tree by a **greedy, recursive** procedure:
+Given a training set $S$, ERM over $\mathcal{H}_{\text{tree}}$ searches all trees for the one minimizing $\widehat{R}_S(h_T)$. The search cannot be carried out efficiently in general: the following proposition shows that even the feasibility question — whether some tree with at most $L$ leaves fits the sample exactly — is NP-complete. The intractability therefore lies in the tree structure and the choice of tests jointly, not in a particular impurity criterion.
+
+**Proposition 9.2.1 (Leaf-budgeted ERM for decision trees is NP-hard).** Let $\mathcal{X}=\{0,1\}^d$, $\mathcal{Y}=\{0,1\}$, and let $\mathcal{H}_{\mathrm{tree},L}^{\mathrm{cat}}$ be the class of binary decision trees with at most $L$ leaves whose tests are of the form $\mathds{1}(x_j=1)$. Given a sample $S$ and an integer $L$, deciding whether some $h\in\mathcal{H}_{\mathrm{tree},L}^{\mathrm{cat}}$ satisfies $\widehat{R}_S(h)=0$ is NP-complete.
+
+***Proof.*** Membership in NP is immediate: a certificate is a tree with at most $L$ leaves, its tests, and its leaf labels, and consistency with $S$ is verified by routing each of the $m$ examples. The certificate can be taken of polynomial size in $d$ and $m$: if a consistent tree exists, contracting nodes with a single child and pruning leaves that contain no sample point yields a tree whose leaves each contain at least one of the $m$ examples, hence a tree with at most $m$ leaves, and its tests involve at most $d$ features.
+
+For NP-hardness, reduce from Hitting Set: given a universe $[d]$, a family $A_1,\ldots,A_n\subseteq[d]$, and an integer $k$, decide whether some $H\subseteq[d]$ with $|H|\le k$ intersects every $A_i$. Construct $S$ from the $n$ positive examples $x_i:=\mathds{1}_{A_i}$, $y_i:=1$, and one negative example $x_0:=0^d$, $y_0:=0$. We claim that a consistent tree with at most $k+1$ leaves exists if and only if a hitting set of size at most $k$ exists.
+
+($\Leftarrow$) Given $H=\{j_1,\ldots,j_k\}$, build a chain that tests $x_{j_1}=1,\ldots,x_{j_k}=1$ in order: at the $t$-th test, the branch $x_{j_t}=1$ ends in a leaf labeled $1$, and the branch $x_{j_t}=0$ continues to the next test; the final $x_{j_k}=0$ branch ends in a leaf labeled $0$. The tree has $k+1$ leaves. Every positive $x_i$ has $x_{ij}=1$ for some $j\in H$, so it exits at a positive leaf; $x_0$ takes every zero branch and reaches the negative leaf.
+
+($\Rightarrow$) Let $T$ be a consistent tree with at most $k+1$ leaves, and follow the path of $x_0$ from the root. At each internal node on this path, $x_0$ takes the branch $x_j=0$; let $H$ be the set of features tested on the path. The path contains at most $k$ internal nodes, since a binary tree with $\ell$ leaves has $\ell-1$ internal nodes, so $|H|\le k$. For any positive $x_i$, if it took the zero branch at every node of the path, it would follow the same route as $x_0$ and end in the leaf labeled $0$, contradicting consistency. Hence at some node on the path $x_i$ takes the branch $x_j=1$, which requires $x_{ij}=1$, so $j\in A_i$. Thus $H$ intersects every $A_i$, and $|H|\le k$. $\square$
+
+The reduction uses only equality tests on binary features; threshold tests $\mathds{1}(x_j\le t)$ with $0\le t<1$ induce the same partition of $\{0,1\}^d$, so the hardness carries over to the threshold model used in this chapter. Hitting Set is one of the original NP-complete problems [Karp (1972)](https://doi.org/10.1007/978-1-4684-2001-2_9)<!-- cite: karp1972reducibility | inproceedings | author={Karp, Richard M.}; title={Reducibility Among Combinatorial Problems}; booktitle={Complexity of Computer Computations}; year={1972} -->, and the NP-completeness of constructing optimal binary decision trees is the classical result [Hyafil & Rivest (1976)](https://doi.org/10.1016/0020-0190(76)90095-8)<!-- cite: hyafil1976constructing | article | author={Hyafil, Laurent and Rivest, Ronald L.}; title={Constructing Optimal Binary Decision Trees Is NP-Complete}; journal={Information Processing Letters}; year={1976}; volume={5}; number={1}; pages={15--17} -->. The proposition is the leaf-budgeted consistency version of that result: it isolates the combinatorial core of the problem and shows that the intractability is present already in the feasibility question, before any impurity criterion is chosen.
+
+In practice, we build the tree by a **greedy, recursive** procedure:
 
 1. Start with a single leaf holding all of $S$.
 2. At each leaf currently holding a subset $S_v \subseteq S$, consider splitting it into two children by some rule $\phi_v$. Among all candidate rules (all features, all thresholds), pick the one that most reduces an **impurity** measure of the label distribution within the node (defined below).
 3. Recurse into each child with its corresponding subset of $S_v$, and repeat, until a stopping criterion is met (e.g. a maximum depth, a minimum leaf size, or zero remaining impurity).
 4. Label each final leaf $u$ with the majority class of $S_v$ restricted to that leaf (classification) or the mean label (regression).
 
-The key design choice is the **impurity measure**, which stands in for $\widehat{R}_S(h)$ as a differentiable-in-spirit, locally computable proxy that the greedy procedure can optimize one split at a time. For a node $v$ holding a subset $S_v$ of size $m_v := |S_v|$, with class proportions $\widehat{p}_c := \frac{|\{(x,y) \in S_v : y=c\}|}{m_v}$ for $c \in \{1,\ldots,C\}$, two common choices are:
+The key design choice is the **impurity measure**, which stands in for $\widehat{R}_S(h)$ as a differentiable-in-spirit, locally computable proxy that the greedy procedure can optimize one split at a time. For a node $v$ holding a subset $S_v$, with class proportions $\widehat{p}_c := \frac{|\{(x,y) \in S_v : y=c\}|}{|S_v|}$ for $c \in \{1,\ldots,C\}$, two common choices are:
 
 * **Entropy** (of the empirical label distribution at the node): $H(S_v) := -\sum_{c=1}^C \widehat{p}_c \log \widehat{p}_c$, borrowed directly from information theory — it is maximized when $S_v$'s labels are uniformly spread across classes (there is the most "uncertainty" about the label at this node) and zero when $S_v$ is pure (a single class). Following the convention of these notes, $\log$ here is the natural logarithm, so entropy is measured in nats rather than the more familiar bits; the base only rescales $H$ by a positive constant and therefore never changes which split is selected.
 * **Gini index**: $G(S_v) := 1 - \sum_{c=1}^C \widehat{p}_c^2 = \sum_{c=1}^C \widehat{p}_c(1-\widehat p_c)$, the probability that two labels drawn independently (with replacement) from $S_v$'s empirical distribution disagree. It behaves similarly to entropy — zero for a pure node, maximal for a uniform one — but is less costly to compute and does not involve a logarithm.
 
 Given an impurity measure $\mathrm{Imp}(\cdot) \in \{H, G\}$ and a candidate split of $S_v$ into $S_{v,\text{left}}$ and $S_{v,\text{right}}$, the **information gain** of the split is the reduction in impurity, weighted by the resulting subset sizes:
 
-$$\mathrm{Gain}(S_v, \phi_v) := \mathrm{Imp}(S_v) - \frac{|S_{v,\text{left}}|}{m_v}\mathrm{Imp}(S_{v,\text{left}}) - \frac{|S_{v,\text{right}}|}{m_v}\mathrm{Imp}(S_{v,\text{right}}).$$
+$$\mathrm{Gain}(S_v, \phi_v) := \mathrm{Imp}(S_v) - \frac{|S_{v,\text{left}}|}{|S_v|}\mathrm{Imp}(S_{v,\text{left}}) - \frac{|S_{v,\text{right}}|}{|S_v|}\mathrm{Imp}(S_{v,\text{right}}).$$
 
-At each node, the greedy algorithm picks the split $\phi_v$ maximizing $\mathrm{Gain}(S_v,\phi_v)$ over all candidate features and thresholds. This greedy, node-by-node maximization is what makes decision tree induction tractable: it never revisits an earlier split, and never jointly optimizes two splits together, at the cost of no longer being guaranteed to find the ERM-optimal tree of a given size.
+At each node, the greedy algorithm picks the split $\phi_v$ maximizing $\mathrm{Gain}(S_v,\phi_v)$ over all candidate features and thresholds. This greedy, node-by-node maximization is what makes decision tree induction tractable: it never revisits an earlier split, and never jointly optimizes two splits together, with the consequence that it is no longer guaranteed to find the ERM-optimal tree of a given size.
 
 # Overfitting and the Bias-Complexity Dilemma
 
@@ -68,25 +93,9 @@ so $m = O\big(L\log(d) + L\log m\big)$, which forces $m = O\big(L\log(Ld)\big)$ 
 
 Complexity therefore grows essentially linearly with the number of leaves — up to a logarithmic factor for choosing which feature and threshold to split on at each internal node — a formal restatement of the intuition that more leaves means more capacity to overfit. The proof is also worth noting for what it does *not* count: the thresholds $t$ range over an uncountable set, yet only $m+1$ of them are distinguishable on a given sample. This is the same "infinite class, finite restriction" phenomenon that Definition 6.4.1 was introduced to capture.
 
-# PAC Analysis of Decision Trees
-
-**$\mathcal{H}_{\text{tree}}$ itself is not PAC learnable.** Since a tree can grow arbitrarily many leaves, $d_{VC}(\mathcal{H}_{\text{tree}}) = \lim_{L\to\infty} d_{VC}(\mathcal{H}_{\text{tree},L}) = \infty$ (a tree with $2^k$ leaves can, on real-valued features, always be grown to shatter any $k$ points by isolating each into its own leaf). By Theorem 6.4.6, an infinite VC dimension rules out PAC learnability for the *unconstrained* class: no sample size $m$ guarantees good generalization uniformly over all of $\mathcal{H}_{\text{tree}}$, matching the memorization behavior already noted above. Just as with $k$-nearest neighbors (Chapter 4) and unconstrained polynomial regression (Chapter 2), the fix is not to abandon the hypothesis class, but to control which part of it we search — exactly the role that early stopping and pruning play informally, and which we now make precise.
-
-**Fixed leaf budget: a standard agnostic PAC bound.** Fix a leaf budget $L$ and restrict to $\mathcal{H}_{\text{tree},L}$, which has finite VC dimension $d_L := d_{VC}(\mathcal{H}_{\text{tree},L}) = O(L\log(Ld))$. The Fundamental Theorem of Statistical Learning (Theorem 6.4.7) then applies directly: $\mathcal{H}_{\text{tree},L}$ is agnostic PAC learnable, and with probability at least $1-\delta$, every tree $h \in \mathcal{H}_{\text{tree},L}$ satisfies
-
-$$R(h) \leq \widehat{R}_S(h) + O\left(\sqrt{\frac{L\log(Ld) + \log(1/\delta)}{m}}\right).$$
-
-This already formalizes the early-stopping heuristic: fixing a maximum depth (hence an upper bound on $L$) in advance and running ERM (i.e. the greedy growth procedure, as a tractable surrogate for exact ERM) within $\mathcal{H}_{\text{tree},L}$ inherits this generalization guarantee.
-
-**Unknown leaf budget: decision trees as an instance of SRM.** In practice we do not fix $L$ in advance — the greedy algorithm decides how many leaves to grow from the data itself, effectively searching $\mathcal{H}_{\text{tree}} = \bigcup_{L=1}^\infty \mathcal{H}_{\text{tree},L}$. This is precisely the nonuniform learning setting of Theorem 6.4.12: assign each subclass $\mathcal{H}_{\text{tree},L}$ a weight $w(L)$ with $\sum_{L=1}^\infty w(L) < 1$ (e.g. $w(L) := 6/(\pi^2 L^2)$, or a prefix-free code on $L$ as in the MDL construction of Lemma 6.4.13), and Theorem 6.4.12 gives, with probability at least $1-\delta$, simultaneously for **every** tree $h \in \mathcal{H}_{\text{tree}}$ of any size $L(h)$,
-
-$$R(h) \leq \widehat{R}_S(h) + O\left(\sqrt{\frac{L(h)\log(L(h)d) + \log(1/(w(L(h))\delta))}{m}}\right).$$
-
-The resulting $h_{SRM}$ rule — minimize the right-hand side jointly over tree structure and size — makes explicit what pruning and early stopping approximate: a term that strictly decreases with $L$ (the greedy algorithm's $\widehat{R}_S$, which can always be driven towards $0$ by adding leaves) traded off against a term that strictly increases with $L$ (the complexity penalty $\sqrt{L\log(Ld)/m}$). A pruning rule that stops merging leaves once further merges would raise a held-out validation error is, in effect, estimating this trade-off directly from data rather than from the closed-form penalty above — a data-driven proxy for the same SRM objective.
-
 # Illustrative Example
 
-Consider a tiny data set for deciding whether to play outdoor tennis, with two binary features — $\mathtt{Outlook} \in \{\mathrm{Sunny}, \mathrm{Rainy}\}$ and $\mathtt{Wind} \in \{\mathrm{Weak}, \mathrm{Strong}\}$ — and label $\mathtt{Play} \in \{\mathrm{Yes}, \mathrm{No}\}$:
+Consider a tiny data set for deciding whether to play outdoor tennis, with two binary features — $\mathtt{Outlook}$ taking the values Sunny and Rainy, and $\mathtt{Wind}$ taking the values Weak and Strong — and label $\mathtt{Play}$ taking the values Yes and No:
 
 | $\mathtt{Outlook}$ | $\mathtt{Wind}$ | $\mathtt{Play}$ |
 |---|---|---|
@@ -99,7 +108,9 @@ Consider a tiny data set for deciding whether to play outdoor tennis, with two b
 | Rainy | Strong | No |
 | Rainy | Strong | No |
 
-Here $m=8$, with $4$ "Yes" and $4$ "No", so the root's Gini index is $G(S) = 1 - (\tfrac12)^2 - (\tfrac12)^2 = 0.5$.
+Here $m=8$, with $3$ "Yes" and $5$ "No", so the root's Gini index is
+$$G(S) = 1 - \Big(\tfrac38\Big)^2 - \Big(\tfrac58\Big)^2 = \tfrac{15}{32} = 0.46875.$$
+The counts are read directly from the table: the first three rows are Yes, and the remaining five are No.
 
 **Candidate split on $\mathtt{Outlook}$.** This sends the $4$ Sunny points (3 Yes, 1 No) to the left child and the $4$ Rainy points (0 Yes, 4 No) to the right child:
 
@@ -108,7 +119,7 @@ G(S_{\text{left}}) = 1 - \big(\tfrac34\big)^2 - \big(\tfrac14\big)^2 = 0.375, \\
 G(S_{\text{right}}) = 1 - 1^2 - 0^2 = 0.
 \end{gathered}$$
 
-$$\mathrm{Gain}(S, \mathtt{Outlook}) = 0.5 - \tfrac{4}{8}(0.375) - \tfrac{4}{8}(0) = 0.5 - 0.1875 = 0.3125.$$
+$$\mathrm{Gain}(S, \mathtt{Outlook}) = \tfrac{15}{32} - \tfrac{4}{8}\big(\tfrac{6}{16}\big) - \tfrac{4}{8}(0) = \tfrac{15}{32} - \tfrac{6}{32} = \tfrac{9}{32} = 0.28125.$$
 
 **Candidate split on $\mathtt{Wind}$.** This sends the $5$ Weak points (3 Yes, 2 No) to the left child and the $3$ Strong points (0 Yes, 3 No) to the right child:
 
@@ -117,9 +128,9 @@ G(S_{\text{left}}) = 1 - \big(\tfrac35\big)^2 - \big(\tfrac25\big)^2 = 0.48, \\
 G(S_{\text{right}}) = 1 - 0^2 - 1^2 = 0.
 \end{gathered}$$
 
-$$\mathrm{Gain}(S, \mathtt{Wind}) = 0.5 - \tfrac58(0.48) - \tfrac38(0) = 0.5 - 0.3 = 0.2.$$
+$$\mathrm{Gain}(S, \mathtt{Wind}) = \tfrac{15}{32} - \tfrac{5}{8}\big(\tfrac{12}{25}\big) - \tfrac{3}{8}(0) = \tfrac{15}{32} - \tfrac{3}{10} = \tfrac{27}{160} = 0.16875.$$
 
-Since $\mathrm{Gain}(S,\mathtt{Outlook}) = 0.3125 > 0.2 = \mathrm{Gain}(S,\mathtt{Wind})$, the greedy algorithm splits on $\mathtt{Outlook}$ first. The right child (Rainy) is already pure ($G=0$) and becomes a leaf predicting $\mathrm{No}$. The left child (Sunny, $3$ Yes/$1$ No) is not pure, so we recurse: splitting it further on $\mathtt{Wind}$ sends its single Strong/No point to its own leaf and the remaining $3$ Weak/Yes points to another, both pure, terminating the recursion. The resulting tree is
+Since $\mathrm{Gain}(S,\mathtt{Outlook}) = \tfrac{9}{32} = 0.28125 > \tfrac{27}{160} = 0.16875 = \mathrm{Gain}(S,\mathtt{Wind})$, the greedy algorithm splits on $\mathtt{Outlook}$ first. The right child (Rainy) is already pure ($G=0$) and becomes a leaf predicting $\mathrm{No}$. The left child (Sunny, $3$ Yes/$1$ No) is not pure, so we recurse: splitting it further on $\mathtt{Wind}$ sends its single Strong/No point to its own leaf and the remaining $3$ Weak/Yes points to another, both pure, terminating the recursion. The resulting tree is
 
 ```
                  Outlook?
@@ -133,7 +144,23 @@ Since $\mathrm{Gain}(S,\mathtt{Outlook}) = 0.3125 > 0.2 = \mathrm{Gain}(S,\matht
      Yes           No
 ```
 
-Observe that this tree achieves $\widehat{R}_S(h_T) = 0$ using only $3$ leaves out of the $2^2=4$ possible input combinations having been observed — the greedy split ordering (largest information gain first) is exactly what let it reach a pure partition using the *fewest* splits, which is the practical mechanism by which impurity-driven greedy growth tends to produce small, and hence better-generalizing, trees compared to growing in an arbitrary order.
+Observe that this tree achieves $\widehat{R}_S(h_T) = 0$ with three leaves. Three is also the minimum for this sample: a single split cannot separate the classes, since both candidate roots leave one child containing both labels, so no two-leaf tree is consistent. The gain criterion selects $\mathtt{Outlook}$ as the root, but it does not reduce the leaf count here: splitting on $\mathtt{Wind}$ first and then on $\mathtt{Outlook}$ inside the Weak child also yields a three-leaf consistent tree. The greedy ordering is therefore a heuristic for finding a small tree, not a guarantee of finding the smallest one; Proposition 9.2.1 shows that no polynomial-time algorithm can guarantee the smallest consistent tree unless P$\,=\,$NP. What the example does illustrate is the mechanism that makes the heuristic useful: each split is chosen to reduce impurity as much as possible at the current node, and on this sample the resulting tree is already leaf-optimal.
+
+# PAC Analysis of Decision Trees
+
+**$\mathcal{H}_{\text{tree}}$ itself is not PAC learnable.** Since a tree can grow arbitrarily many leaves, $d_{VC}(\mathcal{H}_{\text{tree},L}) \to \infty$ as $L \to \infty$, hence $d_{VC}(\mathcal{H}_{\text{tree}}) = \infty$ (a tree with $2^k$ leaves can, on real-valued features, always be grown to shatter any $k$ points by isolating each into its own leaf). By Theorem 6.4.6, an infinite VC dimension rules out PAC learnability for the *unconstrained* class: no sample size $m$ guarantees good generalization uniformly over all of $\mathcal{H}_{\text{tree}}$, matching the memorization behavior already noted above. Just as with $k$-nearest neighbors (Chapter 4) and unconstrained polynomial regression (Chapter 2), the fix is not to abandon the hypothesis class, but to control which part of it we search — exactly the role that early stopping and pruning play informally, and which we now make precise.
+
+**Fixed leaf budget: a standard agnostic PAC bound.** Fix a leaf budget $L$ and restrict to $\mathcal{H}_{\text{tree},L}$, which has finite VC dimension $d_L := d_{VC}(\mathcal{H}_{\text{tree},L}) = O(L\log(Ld))$. The Fundamental Theorem of Statistical Learning (Theorem 6.4.7) then applies directly: $\mathcal{H}_{\text{tree},L}$ is agnostic PAC learnable, and with probability at least $1-\delta$, every tree $h \in \mathcal{H}_{\text{tree},L}$ satisfies
+
+$$R(h) \leq \widehat{R}_S(h) + O\left(\sqrt{\frac{L\log(Ld) + \log(1/\delta)}{m}}\right).$$
+
+This already formalizes the early-stopping heuristic: fixing a maximum depth (hence an upper bound on $L$) in advance and running the greedy growth procedure within $\mathcal{H}_{\text{tree},L}$ inherits this generalization guarantee, since the bound holds uniformly over the class. Exact ERM over $\mathcal{H}_{\text{tree},L}$ is NP-hard by Proposition 9.2.1; the greedy procedure is the tractable surrogate that replaces it.
+
+**Unknown leaf budget: decision trees as an instance of SRM.** In practice we do not fix $L$ in advance — the greedy algorithm decides how many leaves to grow from the data itself, effectively searching $\mathcal{H}_{\text{tree}} = \bigcup_{L=1}^\infty \mathcal{H}_{\text{tree},L}$. This is precisely the nonuniform learning setting of Theorem 6.4.12: assign each subclass $\mathcal{H}_{\text{tree},L}$ a weight $w(L)$ with $\sum_{L=1}^\infty w(L) < 1$ (e.g. $w(L) := 6/(\pi^2 L^2)$, or a prefix-free code on $L$ as in the MDL construction of Lemma 6.4.13), and Theorem 6.4.12 gives, with probability at least $1-\delta$, simultaneously for **every** tree $h \in \mathcal{H}_{\text{tree}}$ of any size $L(h)$,
+
+$$R(h) \leq \widehat{R}_S(h) + O\left(\sqrt{\frac{L(h)\log(L(h)d) + \log(1/(w(L(h))\delta))}{m}}\right).$$
+
+The resulting $h_{SRM}$ rule — minimize the right-hand side jointly over tree structure and size — makes explicit what pruning and early stopping approximate: a term that strictly decreases with $L$ (the greedy algorithm's $\widehat{R}_S$, which can always be driven towards $0$ by adding leaves) traded off against a term that strictly increases with $L$ (the complexity penalty $\sqrt{L\log(Ld)/m}$). A pruning rule that stops merging leaves once further merges would raise a held-out validation error is, in effect, estimating this trade-off directly from data rather than from the closed-form penalty above — a data-driven proxy for the same SRM objective.
 
 # Implementation: Growing a Tree on a Real Data Set
 

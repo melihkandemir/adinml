@@ -1,0 +1,76 @@
+% Standalone TikZ figure: the piecewise-constant prediction surface of a decision tree.
+% \input from the chapter's raw-LaTeX block; not rendered by Obsidian.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[scale=1.0, >=stealth]
+    \definecolor{regiongray}{HTML}{BDBDBD}
+
+    % Oblique projection: (x1,x2,prediction) -> (x1 + 0.45*x2, 0.32*x2 + 0.85*prediction).
+    % Base plane (the feature space at prediction zero).
+    \fill[black!3]
+        ({0+0.45*0},{0.32*0}) -- ({4+0.45*0},{0.32*0}) --
+        ({4+0.45*3},{0.32*3}) -- ({0+0.45*3},{0.32*3}) -- cycle;
+    \draw[black!25]
+        ({0+0.45*0},{0.32*0}) -- ({4+0.45*0},{0.32*0}) --
+        ({4+0.45*3},{0.32*3}) -- ({0+0.45*3},{0.32*3}) -- cycle;
+    \draw[dashed, black!25] ({2+0.45*0},{0.32*0}) -- ({2+0.45*3},{0.32*3});
+    \draw[dashed, black!25] ({0+0.45*1.5},{0.32*1.5}) -- ({2+0.45*1.5},{0.32*1.5});
+    \draw[dashed, black!25] ({2+0.45*2},{0.32*2}) -- ({4+0.45*2},{0.32*2});
+
+    % Prisms, drawn back to front.  Each prism is the graph of the constant
+    % prediction over one leaf region: top face at height h, front face
+    % (x2 = y0) and left face (x1 = x0) visible.
+    \foreach \myx/\myy/\myX/\myY/\myh/\myc in {%
+        2/2/4/3/0.1/regiongray,%
+        0/1.5/2/3/0.85/mondrianred,%
+        2/0/4/2/0.55/mondrianyellow,%
+        0/0/2/1.5/0.25/mondrianblue}
+    {
+        % top face
+        \fill[\myc!85]
+            ({\myx+0.45*\myy},{0.32*\myy+0.85*\myh}) --
+            ({\myX+0.45*\myy},{0.32*\myy+0.85*\myh}) --
+            ({\myX+0.45*\myY},{0.32*\myY+0.85*\myh}) --
+            ({\myx+0.45*\myY},{0.32*\myY+0.85*\myh}) -- cycle;
+        \draw[black!50]
+            ({\myx+0.45*\myy},{0.32*\myy+0.85*\myh}) --
+            ({\myX+0.45*\myy},{0.32*\myy+0.85*\myh}) --
+            ({\myX+0.45*\myY},{0.32*\myY+0.85*\myh}) --
+            ({\myx+0.45*\myY},{0.32*\myY+0.85*\myh}) -- cycle;
+        % front face (x2 = y0)
+        \fill[\myc!60]
+            ({\myx+0.45*\myy},{0.32*\myy}) --
+            ({\myX+0.45*\myy},{0.32*\myy}) --
+            ({\myX+0.45*\myy},{0.32*\myy+0.85*\myh}) --
+            ({\myx+0.45*\myy},{0.32*\myy+0.85*\myh}) -- cycle;
+        \draw[black!50]
+            ({\myx+0.45*\myy},{0.32*\myy}) --
+            ({\myX+0.45*\myy},{0.32*\myy}) --
+            ({\myX+0.45*\myy},{0.32*\myy+0.85*\myh}) --
+            ({\myx+0.45*\myy},{0.32*\myy+0.85*\myh}) -- cycle;
+        % left face (x1 = x0)
+        \fill[\myc!45]
+            ({\myx+0.45*\myy},{0.32*\myy}) --
+            ({\myx+0.45*\myY},{0.32*\myY}) --
+            ({\myx+0.45*\myY},{0.32*\myY+0.85*\myh}) --
+            ({\myx+0.45*\myy},{0.32*\myy+0.85*\myh}) -- cycle;
+        \draw[black!50]
+            ({\myx+0.45*\myy},{0.32*\myy}) --
+            ({\myx+0.45*\myY},{0.32*\myY}) --
+            ({\myx+0.45*\myY},{0.32*\myY+0.85*\myh}) --
+            ({\myx+0.45*\myy},{0.32*\myy+0.85*\myh}) -- cycle;
+        % prediction label at the centre of the top face
+        \node[fill=white, fill opacity=0.75, text opacity=1,
+              inner sep=1pt, rounded corners=1pt, font=\scriptsize]
+            at ({(\myx+\myX)/2+0.45*(\myy+\myY)/2},%
+                {0.32*(\myy+\myY)/2+0.85*\myh}) {$c_u=\myh$};
+    }
+
+    % Prediction axis, drawn outside the surface.
+    \draw[<->] (-0.45,-0.1) -- (-0.45,0.95)
+        node[midway, left, font=\small, align=right] {prediction\\$h_T(x)$};
+    \node[font=\small] at (2.3,-0.55) {feature space $(x_1,x_2)$};
+\end{tikzpicture}
+\caption[Piecewise-constant prediction surface of a decision tree.]{The predictor induced by the tree of Figure 9.1 is piecewise constant. Each leaf region $R_u$ is drawn as a prism whose height is the leaf prediction $c_u$; the graph of $h_T$ is the union of the top faces. The surface is flat inside every region and jumps at the partition boundaries, so a tree represents a function with no variation within a leaf and discontinuities across leaves. The figure is the decision-tree analogue of the piecewise-constant surface in Hastie et al. (2009, Figure 9.3), drawn here in the notation of this chapter.}
+\label{fig:decision-tree-surface}
+\end{figure}

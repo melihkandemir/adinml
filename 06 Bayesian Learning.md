@@ -87,7 +87,11 @@ using the known mean of the Beta distribution. This is the **posterior predictiv
 * It **averages over all possible values of $\theta$**, weighted by their posterior probability — a form of **model averaging** that accounts for parameter uncertainty, rather than committing to a single point estimate.
 * As $m \to \infty$, the pseudo-counts $\alpha,\beta$ become negligible relative to $\sum_i x_i$ and $m - \sum_i x_i$, so $P(x_*=1 \mid S) \to \theta_{MLE}$: the Bayesian and frequentist predictions coincide in the large-sample limit, while differing — often substantially — for small $m$, exactly where accounting for uncertainty matters most.
 
-Given a predictive distribution, there is more than one way to commit to a single prediction. The **Bayes predictor** takes the mode of the predictive distribution — its most probable value, $\arg\max_{x} P(x_*=x \mid S)$ — and is optimal in the sense of minimizing expected 0/1 loss. The **Gibbs predictor** instead samples a prediction, $\widehat{x} \sim P(x_* \mid S)$. It can never beat the mode: for a binary outcome with predictive probability $p := P(x_*=1 \mid S)$, its probability of error under the predictive distribution is $p(1-p) + (1-p)p = 2p(1-p)$, against $\min(p,1-p)$ for the mode — larger unless $p \in \{0,\tfrac12,1\}$, but never more than twice as large, since $2p(1-p) \leq 2\min(p,1-p)$.
+Given a predictive distribution, there is more than one way to commit to a single prediction. The **Bayes predictor** takes the mode of the predictive distribution — its most probable value, $\arg\max_{x} P(x_*=x \mid S)$ — and is optimal in the sense of minimizing expected 0/1 loss. The **Gibbs predictor** instead samples a prediction, $\widehat{x} \sim P(x_* \mid S)$. It can never beat the mode, and the gap is bounded by a factor of two for every finite number of classes. To see this for $C$ classes, let $p = (p_1,\ldots,p_C)$ be the predictive distribution and $p_{\max} := \max_c p_c$. The Bayes error is $1-p_{\max}$, while the Gibbs error is
+
+$$\sum_{c=1}^C p_c(1-p_c) = 1-\sum_{c=1}^C p_c^2 \;\leq\; 1-p_{\max}^2 = (1-p_{\max})(1+p_{\max}) \;\leq\; 2(1-p_{\max}),$$
+
+since $p_{\max} \leq 1$. Thus the Gibbs predictor is never worse than twice the Bayes predictor, for every $C \geq 2$. The binary bound $2p(1-p) \leq 2\min(p,1-p)$ is the case $C=2$, in which the Gibbs error reduces to $2p(1-p)$, $p_{\max} = \max(p,1-p)$, and $1-p_{\max} = \min(p,1-p)$. For $C>2$ the bound is approached when one class has probability near one and the remaining mass is concentrated on a single alternative, so the factor two is not an artifact of the binary case.
 
 # Maximum A-Posteriori Estimation
 
@@ -151,11 +155,21 @@ This is a complete, if minimal, generative classifier. Real problems have more t
 
 ## Naive Bayes Classifier
 
-Assume now $d$ discrete features $x = (x_1,\ldots,x_d)$, each taking values in a finite alphabet, and a label $y \in \{1,\ldots,C\}$. Modeling the *joint* class-conditional distribution $P(x \mid y{=}c)$ exactly would require a full contingency table with one entry per combination of feature values — exponential in $d$, and infeasible to estimate from any realistic amount of data. The **naive Bayes assumption** sidesteps this by assuming the features are conditionally independent given the class:
+Assume now $d$ discrete features $x = (x_1,\ldots,x_d)$, with $x_j$ taking values in a finite alphabet of size $V_j$, and a label $y \in \{1,\ldots,C\}$. The previous subsection is the special case $d=1$, $C=2$, $V_1=2$, and the construction below extends it feature by feature. A generative classifier must model the class-conditional distribution $P(x \mid y{=}c)$. Its unrestricted form is a contingency table over the $\prod_{j=1}^d V_j$ feature configurations; for binary features this is $2^d$ entries per class, hence $(C-1)+C(2^d-1)$ free parameters, exponential in $d$. The MLE is the empirical frequency of each configuration within each class,
 
-$$P(x \mid y{=}c) = \prod_{j=1}^d P(x_j \mid y{=}c).$$
+$$\widehat P(x=v \mid y{=}c) = \frac{N_{c,v}}{m_c}, \qquad N_{c,v} := \sum_{i:\,y_i=c} \mathds{1}(x_i=v), \qquad m_c := \sum_{i:\,y_i=c} 1,$$
 
-This is "naive" because it is almost always false in the real world (features are typically correlated even within a class) — yet the resulting classifier is often highly effective in practice, and always tractable. For each feature $j$ with alphabet $\{1,\ldots,V_j\}$, we only need to estimate a small **tabular** distribution $P(x_j = v \mid y{=}c)$ per class $c$ and value $v$, i.e. a $C \times V_j$ table of probabilities. For binary features ($V_j=2$) this is again exactly the Bernoulli-MLE machinery from before, one Bernoulli parameter $\theta_{j,c}$ per (feature, class) pair:
+so with $m_c$ samples of class $c$ at most $m_c$ configurations are observed, and every unobserved entry is estimated as zero. A query outside the observed set then receives likelihood zero under every class, so the classifier cannot rank the classes there. The obstruction is coverage, not arithmetic: if $x$ is uniform on $\{0,1\}^d$, a fixed configuration is unobserved with probability $(1-2^{-d})^{m_c}$, hence the expected fraction of unobserved configurations is at most $e^{-m_c/2^d}$, and making this fraction at most $\epsilon$ requires $m_c \geq 2^d \log(1/\epsilon)$ samples of the class. The unrestricted model therefore needs exponentially many samples before its table is even populated. A union-bound calculation over the table entries controls each entry to absolute error $\epsilon$ with $m_c=O(d/\epsilon^2)$ samples, but there are $2^d$ entries; summed over the table, the total-variation error can be as large as $2^d\epsilon$, so a constant-accuracy estimate of the joint distribution requires $\epsilon=O(2^{-d})$, hence $m_c=\Omega(2^d)$. The coverage argument makes the same obstruction explicit: the entries that no sample visits are exactly the entries on which the MLE commits to zero.
+
+The **naive Bayes assumption** replaces the table by a product of $d$ one-dimensional tables,
+
+$$P(x \mid y{=}c) = \prod_{j=1}^d P(x_j \mid y{=}c),$$
+
+thereby sharing statistical strength across configurations: every sample, whatever its configuration, contributes to the estimates of all $d$ marginals. This is "naive" because it is almost always false in the real world (features are typically correlated even within a class) — yet the resulting classifier is often highly effective in practice, and always tractable. For each feature $j$ we estimate a **tabular** distribution $P(x_j = v \mid y{=}c)$ over $V_j$ values, i.e. $V_j-1$ free parameters per class, so the total number of free parameters is
+
+$$(C-1) + C\sum_{j=1}^d (V_j-1) = O\Big(C\sum_{j=1}^d V_j\Big),$$
+
+linear in $d$ for fixed alphabet sizes, in contrast to the exponential table of the unrestricted model. For binary features ($V_j=2$) this is exactly the Bernoulli-MLE machinery of the previous subsection, applied once per (feature, class) pair:
 
 $$\begin{gathered}
 \widehat{\theta}_{j,c} := \widehat{P}(x_j{=}1 \mid y{=}c) = \frac{\sum_{i: y_i=c} x_{ij}}{m_c}, \\
@@ -166,7 +180,7 @@ together with the class prior $\widehat\pi_c = m_c / m$. Given a query $x_*$, th
 
 $$\widehat{y} = \arg\max_{c \in [C]} \widehat\pi_c \prod_{j=1}^d \widehat\theta_{j,c}^{\,x_{*j}} (1-\widehat\theta_{j,c})^{1-x_{*j}}.$$
 
-The total number of estimated parameters is $O(Cd)$ — linear in the number of features, in stark contrast to the exponential table size of the unrestricted model. This tabular form generalizes to categorical (non-binary) features and to continuous features (e.g. via a per-class Gaussian $p(x_j \mid y{=}c) = \mathcal{N}(x_j \mid \mu_{j,c}, \sigma_{j,c}^2)$) by the same procedure, replacing the Bernoulli MLE with the MLE of the chosen per-feature family.
+For binary features this is $Cd$ Bernoulli parameters plus $C-1$ prior parameters, linear in the number of features and in stark contrast to the exponential table size of the unrestricted model. This tabular form generalizes to categorical (non-binary) features and to continuous features (e.g. via a per-class Gaussian $p(x_j \mid y{=}c) = \mathcal{N}(x_j \mid \mu_{j,c}, \sigma_{j,c}^2)$) by the same procedure, replacing the Bernoulli MLE with the MLE of the chosen per-feature family.
 
 **PAC analysis of Naive Bayes.** Since every one of the $\widehat\theta_{j,c}$ (and $\widehat\pi_c$) is a Bernoulli-parameter MLE — a sample mean of a $\{0,1\}$-valued quantity — Hoeffding's inequality (Theorem 5.6.5) applies to each of them individually. We have $K = Cd$ such parameters $\widehat\theta_{j,c}$. Conditionally on the labels $y_1,\ldots,y_m$, the estimate $\widehat\theta_{j,c}$ is an average of $m_c$ i.i.d. $\{0,1\}$-valued variables, so Hoeffding's inequality bounds each of its two tails by $e^{-2m_c\epsilon^2} \leq e^{-2m_{\min}\epsilon^2}$, and the union bound over the $2Cd$ one-sided events — the argument of the uniform Hoeffding bound, Theorem 5.6.6, with sample sizes $m_c \geq m_{\min}$ — gives
 
@@ -290,7 +304,7 @@ We now pass from combinatorial capacity to a risk bound. Recall from Definition 
 
 $$\tau_{\mathcal{H}}(m):=\max_{S\subseteq\mathcal{X},\,|S|=m}|\mathcal{H}_S|,\qquad \mathcal{H}_S:=\{(h(x_1),\ldots,h(x_m)):h\in\mathcal{H}\}.$$
 
-Nothing in that definition uses binary labels; it applies verbatim to $C$-valued classes. The multiclass Sauer--Shelah lemma bounds $\tau_{\mathcal{H}}$ in terms of the Natarajan dimension.
+It applies verbatim to $C$-valued classes, as nothing in that definition uses binary labels. The multiclass Sauer--Shelah lemma bounds $\tau_{\mathcal{H}}$ in terms of the Natarajan dimension.
 
 **Lemma 8.6.5 (Multiclass Sauer--Shelah).** Let $\mathcal{H}\subseteq[C]^{\mathcal{X}}$ with $d_{\mathrm{N}}(\mathcal{H})=d_{\mathrm{N}}<\infty$. Then for every $m\ge1$,
 
@@ -401,7 +415,7 @@ $$R(\widehat h_{\mathrm{ERM}})\le\widehat{R}_S(\widehat h_{\mathrm{ERM}})+\epsil
 
 where the middle inequality uses the definition of $\widehat h_{\mathrm{ERM}}$. Taking the infimum over $h\in\mathcal{H}_{\mathrm{NB}}$ gives the claim. $\square$
 
-If the infimum in Theorem 8.6.9 is not attained, the same argument applies to any $\epsilon$-approximate empirical risk minimizer, at the price of adding $\epsilon$ to the right-hand side. The theorem is a *learning* guarantee: it says that ERM over $\mathcal{H}_{\mathrm{NB}}$ is agnostic PAC learnable relative to that class. It does not say that ERM is computationally efficient. Minimizing the zero-one loss over $\mathcal{H}_{\mathrm{NB}}$ is a nonconvex combinatorial problem in general, whereas maximum likelihood is closed-form. This is the precise sense in which the two estimators trade statistical optimality for computational tractability.
+If the infimum in Theorem 8.6.9 is not attained, the same argument applies to any $\epsilon$-approximate empirical risk minimizer, by adding $\epsilon$ to the right-hand side. The theorem is a *learning* guarantee: it says that ERM over $\mathcal{H}_{\mathrm{NB}}$ is agnostic PAC learnable relative to that class. It does not say that ERM is computationally efficient. Minimizing the zero-one loss over $\mathcal{H}_{\mathrm{NB}}$ is a nonconvex combinatorial problem in general, whereas maximum likelihood is closed-form. This is the precise sense in which the two estimators trade statistical optimality for computational tractability.
 
 The two guarantees are summarized in the following table.
 
@@ -412,7 +426,7 @@ The two guarantees are summarized in the following table.
 | guarantee | $R\le\widehat{R}_S+\epsilon_m(\delta)$ | $R\le\inf_{\mathcal{H}_{\mathrm{NB}}}R+2\epsilon_m(\delta)$ |
 | role | the estimator actually used | oracle benchmark and learning guarantee |
 
-The ERM guarantee is relative to $\mathcal{H}_{\mathrm{NB}}$, not to the Bayes risk. If the true distribution factorizes as $P(x\mid y)=\prod_jP(x_j\mid y)$, then the Bayes classifier belongs to $\mathcal{H}_{\mathrm{NB}}$, and the infimum in Theorem 8.6.9 equals the Bayes risk; the bound then controls the excess risk over the best possible predictor. If the distribution does not factorize, the infimum may be strictly larger than the Bayes risk, and the difference is the approximation error of the Naive Bayes model. In neither case does the *bound itself* require the factorization: Corollary 8.6.7 and Theorem 8.6.9 are distribution-free, and the factorization enters only in the interpretation of the approximation error.
+Theorem 8.6.9 compares ERM with the best predictor *inside* $\mathcal{H}_{\mathrm{NB}}$, not with the Bayes classifier. The two benchmarks coincide exactly when the true conditional distribution factorizes as $P(x\mid y)=\prod_jP(x_j\mid y)$: then the Bayes classifier is a member of $\mathcal{H}_{\mathrm{NB}}$, so the infimum in Theorem 8.6.9 equals the Bayes risk, and the bound controls the excess risk over the best possible predictor. When the distribution does not factorize, the infimum can be strictly larger than the Bayes risk; the difference is the approximation error of the Naive Bayes model, and Theorem 8.6.9 controls only the estimation error around that restricted optimum. In neither case does the *bound itself* require the factorization: Corollary 8.6.7 and Theorem 8.6.9 are distribution-free, and the factorization enters only in the interpretation of the approximation error.
 
 The parameter-level Hoeffding bound derived earlier and the classifier-level bound of this section are complementary. The former controls the estimation error of each conditional probability and explains why the Naive Bayes estimates are stable; the latter controls the risk of the decision rule and explains why the classifier generalizes. Neither implies the other: parameter errors can compensate in the argmax, and a small risk does not require the individual probabilities to be accurate. What the capacity analysis adds is the correct dependence on the *number of decision rules*, which for Naive Bayes is governed by $(C-1)(d+1)$ rather than by the $Cd+C-1$ parameters or by the exponentially many entries of a full contingency table.
 

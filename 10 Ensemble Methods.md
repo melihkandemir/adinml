@@ -123,7 +123,7 @@ Two readings of the proof are worth keeping. First, AdaBoost is **coordinate-wis
 
 ***Proof.*** By Theorem 12.2.3, $\widehat{R}_S(h_S) \leq e^{-2\gamma^2 T} \leq e^{-\log m} = 1/m$. But $\widehat{R}_S(h_S)$ is a multiple of $1/m$, and the only such value strictly below $1/m$ is $0$. $\square$
 
-This is the theorem that made boosting famous: a learner that can only beat a coin flip by $\gamma$, on every reweighting of the sample, can be compiled into one that fits the sample perfectly, in $O(\gamma^{-2}\log m)$ rounds. **Weak** and **strong** learnability are the same notion, up to computation. What remains is to price the generalization of the resulting predictor — and this is where two different complexity measures give two genuinely different answers.
+This is the theorem that made boosting famous: a learner that can only beat a coin flip by $\gamma$, on every reweighting of the sample, can be compiled into one that fits the sample perfectly, in $O(\gamma^{-2}\log m)$ rounds. **Weak** and **strong** learnability are the same notion, up to computation. What remains is to bound the generalization of the resulting predictor — and this is where two different complexity measures give two genuinely different answers.
 
 ## What Linear Combinations Cost: Three Accounts
 
@@ -194,13 +194,13 @@ Account 2 says that additional boosting rounds incur no additional complexity �
 
 The trade-off has not disappeared, it has moved into $\nu$: a larger $\nu$ shrinks the complexity term but makes the margin-violation term larger. The bound holds for all $\nu$ simultaneously (up to a union bound over a grid of $\nu$'s), so one may read it at whichever $\nu$ is most favorable for the ensemble actually obtained.
 
-### Account 3: the price of an ensemble is its total weight
+### Account 3: the capacity of an ensemble is its total weight
 
-Account 2 normalized the ensemble to the convex combination $\bar f_T = f_T/\sum_t w_t$. The third account prices the *unnormalized* scale. For a symmetric $\mathcal{H}_0$ and $f = \sum_{t=1}^T w_t h_t$, the **total weight** is $\|w\|_1 := \sum_t |w_t|$, and the ensembles of total weight at most $A$ form the class $\mathcal{F}_{A,L_1}(\mathcal{H}_0)$ of Theorem 7.7.2 (Chapter 7), whose empirical Rademacher complexity is exactly
+Account 2 normalized the ensemble to the convex combination $\bar f_T = f_T/\sum_t w_t$. The third account measures the *unnormalized* scale. For a symmetric $\mathcal{H}_0$ and $f = \sum_{t=1}^T w_t h_t$, the **total weight** is $\|w\|_1 := \sum_t |w_t|$, and the ensembles of total weight at most $A$ form the class $\mathcal{F}_{A,L_1}(\mathcal{H}_0)$ of Theorem 7.7.2 (Chapter 7), whose empirical Rademacher complexity is exactly
 $$\widehat{\mathfrak{R}}_S\big(\mathcal{F}_{A,L_1}(\mathcal{H}_0)\big) = A\cdot\widehat{\mathfrak{R}}_S(\mathcal{H}_0),$$
 **independently of the number of rounds $T$**. Account 2's "convexification is free" is the case $A = 1$.
 
-* The price of an ensemble is its total weight $A$, not its member count $T$ — the same accounting as Chapter 10's width-independent Theorem 10.5.2 for $L_1$-constrained output layers, and the reason an $L_1$ penalty such as the Lasso of Chapter 3 controls capacity through a norm rather than through the number of parameters.
+* The capacity of an ensemble is controlled by its total weight $A$, not by its member count $T$ — the same accounting as Chapter 10's width-independent Theorem 10.5.2 for $L_1$-constrained output layers, and the reason an $L_1$ penalty such as the Lasso of Chapter 3 controls capacity through a norm rather than through the number of parameters.
 * For AdaBoost the total weight $\sum_t w_t$ grows with $T$. Theorem 12.2.7 absorbs this growth by normalizing and measuring margins on the normalized scale; Account 3 says equivalently that the unnormalized $f_T$ belongs to a class whose complexity grows linearly in $\sum_t w_t$.
 * Combined with Maurey's lemma (Theorem 7.7.1, Chapter 7), the account explains why stagewise greedy search is reasonable: every point of $\mathcal{F}_{A,L_1}(\mathcal{H}_0)$ is, on the sample, within $AB/\sqrt N$ of an $N$-term average of members of $\mathcal{H}_0$, so a procedure that adds one member per round searches a set that already contains good sparse approximants of every point of the full class. Theorem 12.3.1 below is the algorithmic counterpart of this approximation fact.
 
