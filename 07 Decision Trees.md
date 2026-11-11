@@ -19,7 +19,7 @@ $$R_u := \bigcap_{v \in \mathrm{path}(u)} \begin{cases} \{x \in \mathcal{X} : x_
 
 and for categorical splits the same display holds with $=$ and $\neq$ replacing $\leq$ and $>$. The family $\{R_u\}$ over $u \in \mathrm{leaves}(T)$ partitions $\mathcal{X}$.
 
-Figure 9.1 displays the two objects side by side: the recursive partition of a two-dimensional feature space and the tree that generates it. Figure 9.2 displays the graph of the resulting predictor, a piecewise-constant surface whose plateaus are the leaf predictions. The construction is the one illustrated in [Hastie et al. (2009)](https://doi.org/10.1007/978-0-387-84858-7)<!-- cite: hastie2009elements | book | author={Hastie, Trevor and Tibshirani, Robert and Friedman, Jerome}; title={The Elements of Statistical Learning: Data Mining, Inference, and Prediction}; publisher={Springer}; year={2009}; edition={2} -->, Figures 9.2 and 9.3, redrawn here in the notation of this chapter.
+Figure 9.1 displays the two objects side by side: the recursive partition of a two-dimensional feature space and the tree that generates it. Figure 9.2 displays the graph of the resulting predictor, a piecewise-constant surface whose plateaus are the leaf predictions. The construction is the standard recursive-partitioning representation: every internal node splits one region along a feature axis, and every leaf owns one cell of the resulting partition.
 
 ```{=latex}
 \input{fig/decision_tree_partition.tex}
@@ -52,46 +52,23 @@ In practice, we build the tree by a **greedy, recursive** procedure:
 3. Recurse into each child with its corresponding subset of $S_v$, and repeat, until a stopping criterion is met (e.g. a maximum depth, a minimum leaf size, or zero remaining impurity).
 4. Label each final leaf $u$ with the majority class of $S_v$ restricted to that leaf (classification) or the mean label (regression).
 
-The key design choice is the **impurity measure**, which stands in for $\widehat{R}_S(h)$ as a differentiable-in-spirit, locally computable proxy that the greedy procedure can optimize one split at a time. For a node $v$ holding a subset $S_v$, with class proportions $\widehat{p}_c := \frac{|\{(x,y) \in S_v : y=c\}|}{|S_v|}$ for $c \in \{1,\ldots,C\}$, two common choices are:
+The key design choice is the **impurity measure**, which stands in for $\widehat{R}_S(h)$ as a differentiable-in-spirit, locally computable proxy that the greedy procedure can optimize one split at a time. For a node $v$ holding a subset $S_v$, with class proportions $\widehat{p}_c := \frac{|\{(x,y) \in S_v : y=c\}|}{|S_v|}$ for $c \in \{1,\ldots,C\}$, three standard choices are:
 
 * **Entropy** (of the empirical label distribution at the node): $H(S_v) := -\sum_{c=1}^C \widehat{p}_c \log \widehat{p}_c$, borrowed directly from information theory — it is maximized when $S_v$'s labels are uniformly spread across classes (there is the most "uncertainty" about the label at this node) and zero when $S_v$ is pure (a single class). Following the convention of these notes, $\log$ here is the natural logarithm, so entropy is measured in nats rather than the more familiar bits; the base only rescales $H$ by a positive constant and therefore never changes which split is selected.
 * **Gini index**: $G(S_v) := 1 - \sum_{c=1}^C \widehat{p}_c^2 = \sum_{c=1}^C \widehat{p}_c(1-\widehat p_c)$, the probability that two labels drawn independently (with replacement) from $S_v$'s empirical distribution disagree. It behaves similarly to entropy — zero for a pure node, maximal for a uniform one — but is less costly to compute and does not involve a logarithm.
+* **Misclassification error**: $E(S_v) := 1 - \max_{c \in [C]} \widehat{p}_c$, the fraction of examples that do not belong to the majority class. It is the empirical $0/1$ risk of the majority-vote leaf and serves as the natural benchmark, but as a split criterion it is coarse: for two classes it is piecewise linear in the class proportion, so it treats as equivalent many splits that Gini and entropy rank differently.
 
-Given an impurity measure $\mathrm{Imp}(\cdot) \in \{H, G\}$ and a candidate split of $S_v$ into $S_{v,\text{left}}$ and $S_{v,\text{right}}$, the **information gain** of the split is the reduction in impurity, weighted by the resulting subset sizes:
+```{=latex}
+\input{fig/impurity_measures.tex}
+```
+
+Figure 9.3 compares the three measures for two classes, as functions of the proportion $p$ of the second class. All three vanish at the pure nodes $p=0$ and $p=1$, and all three attain their maximum at $p=1/2$. Misclassification error is piecewise linear with a kink at $p=1/2$, while the Gini index and entropy are strictly concave and respond more sharply away from the balance point. The difference matters for split selection. With $1000$ examples, $500$ per class, suppose one split produces children with class counts $(375,125)$ and $(125,375)$, while another produces $(250,500)$ and $(250,0)$. Both splits have weighted misclassification error $1/4$: in the first, each child has minority fraction $1/4$; in the second, the impure child has minority fraction $1/3$ but carries only $3/4$ of the mass. The second split has Gini index $1/3$ against $3/8$ for the first, and lower entropy as well, because it isolates a pure node. Tree growth therefore uses Gini or entropy, while misclassification error is appropriate for pruning, where the number of leaves is already controlled and the quantity being optimized is the empirical error of the pruned tree.
+
+For growth we use the two differentiable measures, so let $\mathrm{Imp}(\cdot) \in \{H, G\}$ in the following definition. Given a candidate split of $S_v$ into $S_{v,\text{left}}$ and $S_{v,\text{right}}$, the **information gain** of the split is the reduction in impurity, weighted by the resulting subset sizes:
 
 $$\mathrm{Gain}(S_v, \phi_v) := \mathrm{Imp}(S_v) - \frac{|S_{v,\text{left}}|}{|S_v|}\mathrm{Imp}(S_{v,\text{left}}) - \frac{|S_{v,\text{right}}|}{|S_v|}\mathrm{Imp}(S_{v,\text{right}}).$$
 
 At each node, the greedy algorithm picks the split $\phi_v$ maximizing $\mathrm{Gain}(S_v,\phi_v)$ over all candidate features and thresholds. This greedy, node-by-node maximization is what makes decision tree induction tractable: it never revisits an earlier split, and never jointly optimizes two splits together, with the consequence that it is no longer guaranteed to find the ERM-optimal tree of a given size.
-
-# Overfitting and the Bias-Complexity Dilemma
-
-An unconstrained tree can always drive $\widehat{R}_S(h_T) = 0$ on its training set $S$: grow it until every leaf holds a single training point (or a set of points sharing one label). This is the tree-induction analogue of the memorization hypothesis from Chapter 2 — it exhibits the same overfitting behavior, with tree size (roughly, the number of leaves) playing the role that polynomial degree $M$ played in the curve-fitting example, or that $|\mathcal{H}|$ played in the generalization bound of Chapter 6. Two standard remedies, both instances of the Structural Risk Minimization principle from Chapter 6:
-
-* **Early stopping.** Halt the recursive splitting once a stopping criterion is met (maximum depth, minimum node size, or a minimum required $\mathrm{Gain}$), directly capping the tree's complexity during growth.
-* **Pruning.** Grow a large tree first, then remove (merge) subtrees whose removal does not substantially hurt performance on a held-out validation set — trading a controlled increase in the empirical risk on the training sample for a reduction in complexity, in the hope of decreasing $R(h_T)$.
-
-Consistent with the fundamental theorem of statistical learning (Chapter 6), the capacity of $\mathcal{H}_{\text{tree}}$ can also be bounded formally.
-
-**Proposition 9.3.1 (VC dimension of size-limited trees).** Let $\mathcal{H}_{\text{tree},L} \subset \mathcal{H}_{\text{tree}}$ be the subclass of binary trees with axis-aligned threshold splits on $d$ real-valued features and at most $L$ leaves, predicting in $\{0,1\}$. Then
-$$
-\begin{aligned}
-\tau_{\mathcal{H}_{\text{tree},L}}(m) &\;\leq\; \underbrace{C_{L-1}}_{\text{tree shapes}} \cdot \underbrace{\big(d(m+1)\big)^{L-1}}_{\text{splits}} \cdot \underbrace{2^{L}}_{\text{leaf labels}}, \\
-&\qquad\text{hence}\qquad d_{VC}(\mathcal{H}_{\text{tree},L}) = O\big(L\log(Ld)\big),
-\end{aligned}
-$$
-where $C_{k} \leq 4^{k}$ is the $k$-th Catalan number, counting the shapes of a binary tree with $k$ internal nodes.
-
-***Proof.*** Fix $m$ points. A tree with at most $L$ leaves has at most $L-1$ internal nodes, and its restriction to the sample is determined by three independent choices:
-
-* the **shape** of the tree, i.e. which binary tree with $L-1$ internal nodes it is: $C_{L-1} \leq 4^{L-1}$ possibilities;
-* the **splitting rule** at each internal node. A rule $\mathds{1}(x_j \leq t)$ is determined, *as far as its behavior on the sample is concerned*, by the feature index $j \in [d]$ and by the position of $t$ among the $m$ observed values of feature $j$ — at most $m+1$ distinct positions. So at most $d(m+1)$ effective rules per node, and at most $\big(d(m+1)\big)^{L-1}$ jointly;
-* the **label** $c_u \in \{0,1\}$ of each of the at most $L$ leaves: at most $2^L$ possibilities.
-
-Multiplying gives the stated bound on the growth function. Shattering $m$ points requires $2^m \leq \tau_{\mathcal{H}_{\text{tree},L}}(m)$, i.e.
-$$m\log 2 \;\leq\; (L-1)\log 4 + (L-1)\log\big(d(m+1)\big) + L\log 2,$$
-so $m = O\big(L\log(d) + L\log m\big)$, which forces $m = O\big(L\log(Ld)\big)$ $\square$
-
-Complexity therefore grows essentially linearly with the number of leaves — up to a logarithmic factor for choosing which feature and threshold to split on at each internal node — a formal restatement of the intuition that more leaves means more capacity to overfit. The proof is also worth noting for what it does *not* count: the thresholds $t$ range over an uncountable set, yet only $m+1$ of them are distinguishable on a given sample. This is the same "infinite class, finite restriction" phenomenon that Definition 6.4.1 was introduced to capture.
 
 # Illustrative Example
 
@@ -145,6 +122,36 @@ Since $\mathrm{Gain}(S,\mathtt{Outlook}) = \tfrac{9}{32} = 0.28125 > \tfrac{27}{
 ```
 
 Observe that this tree achieves $\widehat{R}_S(h_T) = 0$ with three leaves. Three is also the minimum for this sample: a single split cannot separate the classes, since both candidate roots leave one child containing both labels, so no two-leaf tree is consistent. The gain criterion selects $\mathtt{Outlook}$ as the root, but it does not reduce the leaf count here: splitting on $\mathtt{Wind}$ first and then on $\mathtt{Outlook}$ inside the Weak child also yields a three-leaf consistent tree. The greedy ordering is therefore a heuristic for finding a small tree, not a guarantee of finding the smallest one; Proposition 9.2.1 shows that no polynomial-time algorithm can guarantee the smallest consistent tree unless P$\,=\,$NP. What the example does illustrate is the mechanism that makes the heuristic useful: each split is chosen to reduce impurity as much as possible at the current node, and on this sample the resulting tree is already leaf-optimal.
+
+# Overfitting and the Bias-Complexity Dilemma
+
+An unconstrained tree can always drive $\widehat{R}_S(h_T) = 0$ on its training set $S$: grow it until every leaf holds a single training point (or a set of points sharing one label). This is the tree-induction analogue of the memorization hypothesis from Chapter 2 — it exhibits the same overfitting behavior, with tree size (roughly, the number of leaves) playing the role that polynomial degree $M$ played in the curve-fitting example, or that $|\mathcal{H}|$ played in the generalization bound of Chapter 6. Two standard remedies, both instances of the Structural Risk Minimization principle from Chapter 6:
+
+* **Early stopping.** Halt the recursive splitting once a stopping criterion is met (maximum depth, minimum node size, or a minimum required $\mathrm{Gain}$), directly capping the tree's complexity during growth.
+* **Pruning.** Grow a large tree first, then remove (merge) subtrees whose removal does not substantially hurt performance on a held-out validation set — trading a controlled increase in the empirical risk on the training sample for a reduction in complexity, in the hope of decreasing $R(h_T)$.
+
+Consistent with the fundamental theorem of statistical learning (Chapter 6), the capacity of $\mathcal{H}_{\text{tree}}$ can also be bounded formally.
+
+**Proposition 9.4.1 (VC dimension of size-limited trees).** Let $\mathcal{H}_{\text{tree},L} \subset \mathcal{H}_{\text{tree}}$ be the subclass of binary trees with axis-aligned threshold splits on $d$ real-valued features and at most $L$ leaves, predicting in $\{0,1\}$. Then
+$$
+\begin{aligned}
+\tau_{\mathcal{H}_{\text{tree},L}}(m) &\;\leq\; \underbrace{C_{L-1}}_{\text{tree shapes}} \cdot \underbrace{\big(d(m+1)\big)^{L-1}}_{\text{splits}} \cdot \underbrace{2^{L}}_{\text{leaf labels}}, \\
+&\qquad\text{hence}\qquad d_{VC}(\mathcal{H}_{\text{tree},L}) = O\big(L\log(Ld)\big),
+\end{aligned}
+$$
+where $C_{k} \leq 4^{k}$ is the $k$-th Catalan number, counting the shapes of a binary tree with $k$ internal nodes.
+
+***Proof.*** Fix $m$ points. A tree with at most $L$ leaves has at most $L-1$ internal nodes, and its restriction to the sample is determined by three independent choices:
+
+* the **shape** of the tree, i.e. which binary tree with $L-1$ internal nodes it is: $C_{L-1} \leq 4^{L-1}$ possibilities;
+* the **splitting rule** at each internal node. A rule $\mathds{1}(x_j \leq t)$ is determined, *as far as its behavior on the sample is concerned*, by the feature index $j \in [d]$ and by the position of $t$ among the $m$ observed values of feature $j$ — at most $m+1$ distinct positions. So at most $d(m+1)$ effective rules per node, and at most $\big(d(m+1)\big)^{L-1}$ jointly;
+* the **label** $c_u \in \{0,1\}$ of each of the at most $L$ leaves: at most $2^L$ possibilities.
+
+Multiplying gives the stated bound on the growth function. Shattering $m$ points requires $2^m \leq \tau_{\mathcal{H}_{\text{tree},L}}(m)$, i.e.
+$$m\log 2 \;\leq\; (L-1)\log 4 + (L-1)\log\big(d(m+1)\big) + L\log 2,$$
+so $m = O\big(L\log(d) + L\log m\big)$, which forces $m = O\big(L\log(Ld)\big)$ $\square$
+
+Complexity therefore grows essentially linearly with the number of leaves — up to a logarithmic factor for choosing which feature and threshold to split on at each internal node — a formal restatement of the intuition that more leaves means more capacity to overfit. The proof is also worth noting for what it does *not* count: the thresholds $t$ range over an uncountable set, yet only $m+1$ of them are distinguishable on a given sample. This is the same "infinite class, finite restriction" phenomenon that Definition 6.4.1 was introduced to capture.
 
 # PAC Analysis of Decision Trees
 

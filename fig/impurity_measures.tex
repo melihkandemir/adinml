@@ -1,0 +1,37 @@
+% Standalone TikZ figure: comparison of node-impurity measures for two classes.
+% \input from the chapter's raw-LaTeX block; not rendered by Obsidian.
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[x=8cm, y=7cm, >=stealth]
+    % Axes and ticks.
+    \draw[->] (0,0) -- (1.06,0) node[below, font=\small] {$p$};
+    \draw[->] (0,0) -- (0,0.58) node[left, font=\small] {impurity};
+    \foreach \pv/\lab in {0/0, 0.5/0.5, 1/1} {
+        \draw (\pv,0.006) -- (\pv,-0.006)
+            node[below, font=\scriptsize] {$\lab$};
+    }
+    \foreach \yv/\lab in {0/0, 0.25/0.25, 0.5/0.5} {
+        \draw (0.006,\yv) -- (-0.006,\yv)
+            node[left, font=\scriptsize] {$\lab$};
+    }
+
+    % The three measures.  Entropy is divided by 2 ln 2 so that all three
+    % maxima equal 1/2.
+    \draw[mondrianblue, very thick, domain=0.002:0.998, samples=200, smooth, variable=\pv]
+        plot (\pv, {min(\pv,1-\pv)});
+    \draw[mondrianred, very thick, domain=0.002:0.998, samples=200, smooth, variable=\pv]
+        plot (\pv, {2*\pv*(1-\pv)});
+    \draw[mondrianyellow!85!black, very thick, domain=0.002:0.998, samples=200, smooth, variable=\pv]
+        plot (\pv, {(-\pv*ln(\pv)-(1-\pv)*ln(1-\pv))/(2*ln(2))});
+
+    % Legend.
+    \draw[very thick, mondrianblue] (0,-0.13) -- (0.05,-0.13);
+    \node[right, font=\scriptsize] at (0.05,-0.13) {misclassification};
+    \draw[very thick, mondrianred] (0.46,-0.13) -- (0.51,-0.13);
+    \node[right, font=\scriptsize] at (0.51,-0.13) {Gini};
+    \draw[very thick, mondrianyellow!85!black] (0.66,-0.13) -- (0.71,-0.13);
+    \node[right, font=\scriptsize] at (0.71,-0.13) {entropy};
+\end{tikzpicture}
+\caption[Comparison of node-impurity measures.]{The three node-impurity measures for two classes, as functions of the proportion $p$ of the second class. Misclassification error is piecewise linear, while the Gini index and entropy are strictly concave. All three vanish at $p=0$ and $p=1$ and attain their maximum at $p=1/2$; entropy is divided by $2\log 2$ so that the three maxima coincide.}
+\label{fig:impurity-measures}
+\end{figure}
