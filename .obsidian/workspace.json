@@ -4,21 +4,17 @@
     "type": "split",
     "children": [
       {
-        "id": "80b4a24f735b7ebd",
+        "id": "dd984c926813159d",
         "type": "tabs",
         "children": [
           {
-            "id": "709ef321d6d46d9b",
+            "id": "d34754f70fcb2d19",
             "type": "leaf",
             "state": {
-              "type": "markdown",
-              "state": {
-                "file": "file:/home/kandemir/Documents/Projects/2026-erl/REVISION.md",
-                "mode": "source",
-                "source": false
-              },
+              "type": "empty",
+              "state": {},
               "icon": "lucide-file",
-              "title": "REVISION"
+              "title": "New tab"
             }
           }
         ]
@@ -188,38 +184,43 @@
       "bases:Create new base": false
     }
   },
-  "active": "709ef321d6d46d9b",
+  "active": "d34754f70fcb2d19",
   "lastOpenFiles": [
-    "exercises/exercise2.md",
-    "exercises/answer2.md",
-    "exercises/exercise1.md",
+    "TODO.md",
+    "fig/impurity_measures.tex",
+    "publish.sh",
+    "fig/decision_tree_surface.tex",
+    "fig/decision_tree_partition.tex",
+    "file:/home/kandemir/Documents/Projects/2026-erl/INSTALL.md",
+    "file:/home/kandemir/Documents/Projects/2026-jucbvi/TODO_Fable.md",
+    "exercises/exercise11.md",
+    "exercises/exercise10.md",
+    "exercises/exercise9.md",
+    "exercises/exercise8.md",
+    "exercises/exercise7.md",
+    "exercise-plan.md",
+    "exercises/answer5.md",
     "exercises/answer4.md",
-    "exercises/answer1.md",
-    "exercises/exercise4.md",
+    "exercises/exercise6.md",
+    "exercises/exercise5.md",
+    "AGENTS.md",
+    "skill-question-prep.md",
+    "exercises/answer6.md",
+    "exercises/answer2.md",
     "exercises/exercise3.md",
+    "exercises/answer7.md",
+    "exercises/exercise4.md",
+    "exercises/exercise1.md",
+    "exercises/exercise2.md",
+    "exercises/answer1.md",
     "exercises/answer3.md",
     "exams/sample-exam1.md",
     "exercises",
-    "exams/sample-exam2.md",
-    "todo.md",
-    "02 Linear_Predictors.md",
-    "01 Basic_Concepts.md",
     "Machine_Learning.pdf",
-    "07 Decision Trees.md",
-    "05b Complexity Measures and Generalization.md",
     "fig/svm.tex.tmp.3978268.cc719dd18ef8",
-    "05a Statistical Learning Theory.md",
     "pdf/Lecture_Notes_Full.pdf",
-    "10 Ensemble Methods.md",
-    "09 Kernel Methods.md",
-    "exams/sample-exam.md",
     "exams",
-    "08 Neural Networks.md",
     "pdf/10 Ensemble Methods.pdf",
-    "pdf/09 Kernel Methods.pdf",
-    "pdf/08 Neural Networks.pdf",
-    "pdf/07 Decision Trees.pdf",
-    "pdf/06 Bayesian Learning.pdf",
     "fig/generated/10_Ensemble_Methods_1.png",
     "fig/generated/09_Kernel_Methods_2.png",
     "fig/generated/09_Kernel_Methods_1.png",
@@ -229,9 +230,6 @@
     "fig/generated/03_Classification_4.png",
     "fig/generated/03_Classification_3.png",
     "fig/generated/03_Classification_2.png",
-    "fig/generated/03_Classification_1.png",
-    "06 Bayesian Learning.md",
-    "03 Classification.md",
-    "04 Probability Theory.md"
+    "fig/generated/03_Classification_1.png"
   ]
 }

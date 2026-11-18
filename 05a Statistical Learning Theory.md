@@ -55,7 +55,7 @@ This inequality is called a generalization bound, because it bounds the generali
  - The bound increases logarithmically with the size of the hypothesis set $|\mathcal{H}|$, that is, a richer hypothesis set is more likely to overfit.
  - The bound decreases with the size of the training set $m$, that is, more data is less likely to overfit.
  - For a fixed training set size $m$ and two different hypothesis sets $\mathcal{H}_1$ and $\mathcal{H}_2$, the bound prefers the smaller hypothesis set. This is known as the **Occam's razor principle**. The principle was introduced by the 14th century theologian William of Ockham. It states that among competing hypotheses, the one with the fewest assumptions should be selected.
- - The bound gives a **Probably Approximately Correct (PAC)** performance guarantee. The event that any hypothesis in $\mathcal{H}$ is **approximately correct** in the sense that its generalization error is at most $\epsilon$ with probability at least $1-\delta$.
+ - The bound gives a **Probably Approximately Correct (PAC)** performance guarantee: with probability at least $1-\delta$ (*probably*), every hypothesis in $\mathcal{H}$ has a generalization error that exceeds its empirical error by at most $\epsilon$ (*approximately correct*).
 
 ---
 
@@ -597,15 +597,15 @@ which in effect inverts the complexity function $m_{\mathcal{H}_i}^{UC}$ of hypo
 
 ---
 
-**Theorem 6.4.12** Let $w: \mathbb{N} \rightarrow [0,1]$ be a function with $\sum_{i=1}^\infty w(i) < 1$ and $\mathcal{H} = \cup_{i \in \mathbb{N}} \mathcal{H}_i$ such that each $\mathcal{H}_i$ has the uniform convergence property with $m_{\mathcal{H}_i}^{UC}$. Then for every $\delta \in (0,1)$, every data distribution $\mathcal{D}$, and every $m \in \mathbb{N}$, and every $i \in \mathbb{N}$ and $h \in \mathcal{H}_i$ we have
+**Theorem 6.4.12** Let $w: \mathbb{N} \rightarrow [0,1]$ be a function with $\sum_{i=1}^\infty w(i) \leq 1$ and $\mathcal{H} = \cup_{i \in \mathbb{N}} \mathcal{H}_i$ such that each $\mathcal{H}_i$ has the uniform convergence property with $m_{\mathcal{H}_i}^{UC}$. Then for every $\delta \in (0,1)$, every data distribution $\mathcal{D}$, and every $m \in \mathbb{N}$, with probability at least $1-\delta$ over $S\sim\mathcal{D}^m$, **simultaneously** for every $i \in \mathbb{N}$ and every $h \in \mathcal{H}_i$,
 
-$$P\left ( \left \{S \sim \mathcal{D}^m: |R(h) - \widehat{R}_S(h)| \leq \epsilon_i(m, w(i) \delta) \right \} \right ) \geq 1-\delta$$
+$$|R(h) - \widehat{R}_S(h)| \leq \epsilon_i(m, w(i) \delta)$$
 
 where $S$ is a data set of size $m$ sampled i.i.d. from $\mathcal{D}$.
 
 ***Proof.*** Fix $i$ and let $B_i$ be the bad event that $S$ fails to be $\epsilon_i(m, w(i)\delta)$-representative for $\mathcal{H}_i$, i.e. $B_i := \{ \exists h \in \mathcal{H}_i : |R(h)-\widehat{R}_S(h)| > \epsilon_i(m,w(i)\delta)\}$. By the definition of $\epsilon_i$ as the inverse of the sample complexity function $m_{\mathcal{H}_i}^{UC}$, applying Definition 6.2.4 to $\mathcal{H}_i$ with confidence parameter $w(i)\delta$ gives $P(B_i) \leq w(i)\,\delta$. The union bound over the countably many subclasses then gives
-$$P\Big(\bigcup_{i \in \mathbb{N}} B_i\Big) \leq \sum_{i \in \mathbb{N}} P(B_i) \leq \delta \sum_{i \in \mathbb{N}} w(i) \;<\; \delta,$$
-using the hypothesis $\sum_i w(i) < 1$. On the complement — an event of probability at least $1-\delta$ — no subclass fails, which is the claim $\square$
+$$P\Big(\bigcup_{i \in \mathbb{N}} B_i\Big) \leq \sum_{i \in \mathbb{N}} P(B_i) \leq \delta \sum_{i \in \mathbb{N}} w(i) \;\leq\; \delta,$$
+using the hypothesis $\sum_i w(i) \leq 1$. On the complement — an event of probability at least $1-\delta$ — no subclass fails, which is the claim $\square$
 
 The proof shows exactly what the weights accomplish: a union bound over infinitely many events is finite only if the individual confidence levels are made summable, and $w$ is the budget allocating a share $w(i)$ of the total failure probability $\delta$ to subclass $i$. Any summable allocation works; different choices of $w$ simply express different prior preferences over the subclasses.
 
@@ -627,7 +627,7 @@ where we use the trivial identity that $\log(2/\delta \cdot w'(h)) =-\log w'(h) 
 
 ---
 
-In many real-world problems, we have little domain knowledge to incorporate into the learning process. It would be useful to have a guideline for building machine learning algorithms without any domain knowledge. Remember that the only condition for combining individually agnostic PAC learnable hypothesis classes into a bigger class is to define a series of positive weights that converge to a value less than one. The following inequality provides an instrumental way of building such a series.
+In many real-world problems, we have little domain knowledge to incorporate into the learning process. It would be useful to have a guideline for building machine learning algorithms without any domain knowledge. Remember that the only condition for combining individually agnostic PAC learnable hypothesis classes into a bigger class is to define positive weights whose sum is at most one. The following inequality provides an instrumental way of building such a series.
 
 **Lemma 6.4.13 (Kraft's inequality)** Let $\Sigma^*$ be a set of finite-length strings over the alphabet $\Sigma=\{0,1\}$ that is **prefix-free**, in the sense that no string $s \in \Sigma^*$ of length $k$ coincides with the first $k$ characters of a longer string in $\Sigma^*$. Then $\sum_{s \in \Sigma^*} 2^{-|s|} \leq 1$, where $|s|$ denotes the length of $s$.
 

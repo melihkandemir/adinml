@@ -9,7 +9,7 @@ Jupyter-notebook export whose actual output images were never included in
 the repository -- to point at the freshly generated files.
 
 This fixes figure display both in Obsidian (the links currently point
-nowhere) and in PDFs built by build_pdf.sh (which, until now, could only
+nowhere) and in the PDF built by build_book.sh (which, until now, could only
 strip these dangling links and print a placeholder note instead of the
 actual plot).
 

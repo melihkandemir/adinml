@@ -311,7 +311,7 @@ $$\mathbb{E}\big[X^k\big] \leq b^{k-2}\sigma^2.$$
 **Proof.** Since $k \geq 2$ and $|X| \leq b$ almost surely, we have $|X|^{k-2} \leq b^{k-2}$ almost surely, and
 $$\mathbb{E}\big[X^k\big] \leq \mathbb{E}\big[|X|^k\big] = \mathbb{E}\big[|X|^{k-2}X^2\big] \leq b^{k-2}\,\mathbb{E}\big[X^2\big] = b^{k-2}\sigma^2. \ \square$$
 
-**Lemma 5.6.8 (Bennett's mgf bound).** Let $X$ be a random variable with $\mathbb{E}[X]=0$, $\mathrm{Var}[X]=\sigma^2$, and $P(X \leq b)=1$ for some $b>0$. Then for every $s>0$,
+**Lemma 5.6.8 (Bennett's mgf bound).** Let $X$ be a random variable with $\mathbb{E}[X]=0$, $\mathrm{Var}[X]=\sigma^2$, and $P(|X| \leq b)=1$ for some $b>0$. Then for every $s>0$,
 $$\mathbb{E}\big[e^{sX}\big] \leq \exp\Big(\frac{\sigma^2}{b^2}\big(e^{sb} - 1 - sb\big)\Big).$$
 
 **Proof.** Expand the moment generating function into its power series and apply Lemma 5.6.7 to each term:
@@ -333,11 +333,11 @@ $$\begin{aligned}
 P\Big(\sum_{i=1}^m X_i \geq m\epsilon\Big) \leq e^{-sm\epsilon}\prod_{i=1}^m\mathbb{E}\big[e^{sX_i}\big] &\leq \exp\Big(-sm\epsilon + \frac{V}{b^2}\big(e^{sb}-1-sb\big)\Big)\\
 &=: e^{h(s)},
 \end{aligned}$$
-where the second inequality applies Lemma 5.6.8 to each $X_i$ (valid since $P(X_i \leq b)=1$ follows from $P(|X_i|\leq b)=1$) and $V := \sum_i \sigma_i^2$. The bound holds for every $s>0$, so it remains to minimize $h(s) = -sm\epsilon + \frac{V}{b^2}(e^{sb}-1-sb)$ over $s>0$. Since $h''(s) = Ve^{sb} > 0$, $h$ is strictly convex, $h(0)=0$, and $h'(0) = -m\epsilon < 0$, so the infimum over $s>0$ is attained at the unique stationary point $s^* > 0$ solving
+where the second inequality applies Lemma 5.6.8 to each $X_i$ and $V := \sum_i \sigma_i^2$. The bound holds for every $s>0$, so it remains to minimize $h(s) = -sm\epsilon + \frac{V}{b^2}(e^{sb}-1-sb)$ over $s>0$. Since $h''(s) = Ve^{sb} > 0$, $h$ is strictly convex, $h(0)=0$, and $h'(0) = -m\epsilon < 0$, so the infimum over $s>0$ is attained at the unique stationary point $s^* > 0$ solving
 $$h'(s^*) = -m\epsilon + \frac{V}{b}\big(e^{s^*b}-1\big) = 0 \iff e^{s^*b} = 1+\frac{m\epsilon b}{V}.$$
 Define $u := \frac{m\epsilon b}{V} > 0$, so $s^*b = \log(1+u)$, $e^{s^*b}-1 = u$, and $m\epsilon = Vu/b$. Substituting into $h$,
 $$\begin{aligned}
-h(s^*) = -\frac{Vu}{b}\cdot\frac{\log(1+u)}{u} + \frac{V}{b^2}\big(u - \log(1+u)\big) &= -\frac{V}{b^2}\Big[(1+u)\log(1+u) - u\Big]\\
+h(s^*) = -\frac{Vu}{b}\cdot\frac{\log(1+u)}{b} + \frac{V}{b^2}\big(u - \log(1+u)\big) &= -\frac{V}{b^2}\Big[(1+u)\log(1+u) - u\Big]\\
 &= -\frac{V}{b^2}\,\psi(u),
 \end{aligned}$$
 where $\psi(u) := (1+u)\log(1+u)-u$. The elementary inequality $\psi(u) \geq \frac{u^2/2}{1+u/3}$ for all $u \geq 0$ (Exercise) therefore gives

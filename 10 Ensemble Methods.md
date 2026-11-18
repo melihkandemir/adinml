@@ -121,7 +121,7 @@ Two readings of the proof are worth keeping. First, AdaBoost is **coordinate-wis
 
 **Corollary 12.2.4 (Weak learnability implies strong learnability).** Let $\mathcal{H}_0$ admit a $\gamma$-weak learner and run AdaBoost for $T \geq \frac{\log m}{2\gamma^2}$ rounds. Then $\widehat{R}_S(h_S) = 0$.
 
-***Proof.*** By Theorem 12.2.3, $\widehat{R}_S(h_S) \leq e^{-2\gamma^2 T} \leq e^{-\log m} = 1/m$. But $\widehat{R}_S(h_S)$ is a multiple of $1/m$, and the only such value strictly below $1/m$ is $0$. $\square$
+***Proof.*** In Step 4 of the proof of Theorem 12.2.3 the inequality $1-u\leq e^{-u}$ is applied with $u=4\gamma_t^2>0$, where it is strict. Hence $\widehat{R}_S(h_S) \leq Z_T < e^{-2\gamma^2 T} \leq e^{-\log m} = 1/m$. But $\widehat{R}_S(h_S)$ is a multiple of $1/m$, and the only such value strictly below $1/m$ is $0$. $\square$
 
 This is the theorem that made boosting famous: a learner that can only beat a coin flip by $\gamma$, on every reweighting of the sample, can be compiled into one that fits the sample perfectly, in $O(\gamma^{-2}\log m)$ rounds. **Weak** and **strong** learnability are the same notion, up to computation. What remains is to bound the generalization of the resulting predictor — and this is where two different complexity measures give two genuinely different answers.
 

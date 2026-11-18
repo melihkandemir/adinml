@@ -29,7 +29,6 @@ Requires a LaTeX distribution (e.g., TeX Live) and Python 3.
 
 ```bash
 ./build_book.sh        # converts Markdown chapters to LaTeX and builds the PDF
-./build_pdf.sh         # builds the PDF from the existing LaTeX sources
 python generate_figures.py   # regenerates figures
 ```
 

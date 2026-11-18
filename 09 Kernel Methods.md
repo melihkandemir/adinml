@@ -483,7 +483,7 @@ $$\mathbb{E}_S\big[R(\widehat f_S)\big] \;\leq\; \mathbb{E}_S\big[\widehat{R}_S(
 
 ***Proof.*** Since every minimizer lies in the closed convex ball $\Omega := \{f : \|f\|_{\mathcal{H}_k} \leq Y/\sqrt\lambda\}$, $\widehat f_S$ is also the minimizer of $\mathcal{J}_S$ over $\Omega$. By the reproducing property $f(x) = \langle f, k(x,\cdot)\rangle_{\mathcal{H}_k}$, so the loss is a convex function of $f$ with gradient $-2(y - f(x))\,k(x,\cdot)$, whose norm on $\Omega$ is at most $2(Y + RY/\sqrt\lambda)R =: G$ by Proposition 11.3.3; the loss is therefore $G$-Lipschitz on $\Omega$. The regularizer $\lambda\|f\|^2_{\mathcal{H}_k}$ is $2\lambda$-strongly convex. Theorem 7.8.3, whose proof holds verbatim in a Hilbert space, makes the algorithm $\frac{2G^2}{2\lambda m}$-uniformly stable, and Theorem 7.8.2 concludes $\square$
 
-The Rademacher route gives a gap of order $1/\sqrt{\lambda m}$ with high probability; the stability route gives order $1/(\lambda m)$ in expectation. Both say that a larger $\lambda$ produces a smaller gap, and the trade-off appears in the training error.
+For a fixed $\lambda$, the Rademacher route gives a gap of order $1/\sqrt m$ with high probability, and the stability route gives order $1/m$ in expectation. Both gaps shrink as $\lambda$ grows, and the trade-off appears in the training error. The faster rate in $m$ comes with a stronger dependence on $\lambda$: the stability constant $4R^2Y^2(1+R/\sqrt\lambda)^2/\lambda$ is of order $1/\lambda$ for $\lambda\geq R^2$ but of order $1/\lambda^2$ as $\lambda\to0$.
 
 How small can the training error, and more importantly the approximation error, become as $\lambda \to 0$, i.e. as the norm budget $B$ grows? For the RBF kernel the answer is: as small as for any continuous predictor.
 
