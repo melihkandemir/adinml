@@ -66,12 +66,6 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
-EXCLUDE = set()
-# Front-matter file rendered as an unnumbered chapter before Chapter 1,
-# rather than as a numbered chapter in the main glob (see main()).
-NOTATION_FILE = "00 Notation.md"
-EXCLUDE.add(NOTATION_FILE)
-
 ENV_KEYWORDS = (
     "Theorem", "Lemma", "Corollary", "Proposition", "Definition",
     "Claim", "Fact", "Assumption", "Example", "Remark", "Proof",
@@ -464,7 +458,8 @@ def write_references_chapter(entries, out_path: Path):
         "\\documentclass[main.tex]{subfiles}\n\n"
         "\\begin{document}\n"
         "\\renewcommand{\\bibname}{References}\n"
-        "\\addcontentsline{toc}{chapter}{References}\n"
+        # No \\addcontentsline here: amd.sty's numberless-chapter format,
+        # which thebibliography's \\chapter* uses, already adds the ToC entry.
         "\\begin{thebibliography}{99}\n\n"
         f"{body}\n\n"
         "\\end{thebibliography}\n"
@@ -499,10 +494,8 @@ def convert_file(md_path: Path, numbered: bool = True) -> str:
     if numbered:
         heading = "\\chapter{%s}\n\n" % latex_title
     else:
-        heading = (
-            "\\chapter*{%s}\n"
-            "\\addcontentsline{toc}{chapter}{%s}\n\n" % (latex_title, latex_title)
-        )
+        # amd.sty's numberless-chapter format adds the ToC entry itself.
+        heading = "\\chapter*{%s}\n\n" % latex_title
 
     return (
         "\\documentclass[main.tex]{subfiles}\n\n"
@@ -539,13 +532,9 @@ def main():
         out_names.append(out_stem)
 
     if not args.md_file:
-        notation_path = ROOT / NOTATION_FILE
-        if notation_path.is_file():
-            tex = convert_file(notation_path, numbered=False)
-            (out_dir / "notation.tex").write_text(tex, encoding="utf-8")
-            out_names.insert(0, "notation")
-            print(f"Wrote {out_dir / 'notation.tex'}")
-
+        # "00 Notation.md" is converted once, as the numbered Chapter 1, like
+        # every other chapter: all hand-written cross-references in the notes
+        # ("Chapter 5", "Theorem 6.4.12", ...) count it as Chapter 1.
         entries = collect_bib_entries(md_files)
 
         n_refs = write_references_bib(entries, ROOT / "References.bib")

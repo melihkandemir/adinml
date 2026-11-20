@@ -30,7 +30,7 @@ $$
 
 Unsurprisingly, the MLE of a Bernoulli parameter is simply the observed frequency of heads, i.e. the sample mean of $S$. This is the estimator we implicitly used throughout Chapter 5 whenever we wrote $\widehat\mu_m$ for a sample of Bernoulli random variables.
 
-# Bayesian Learning
+# Bayesian Inference
 
 The MLE approach commits to a single value of $\theta$ and does not represent how uncertain we are about it — an uncertainty that is naturally large when $m$ is small (imagine estimating $\theta$ from three coin tosses) and shrinks as $m$ grows. This ansatz, where $\theta$ is treated as an unknown but fixed constant, is called **frequentist learning**. **Bayesian learning** instead treats $\theta$ itself as a random variable, with a distribution that captures our belief about its likely values before and after seeing data.
 
