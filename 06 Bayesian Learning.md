@@ -340,7 +340,15 @@ $$
 \end{aligned}
 $$
 
-*Step 3: Massart's lemma.* Condition on $S$. For each $h$, let $a^h:=(\ell(y_1,h(x_1)),\ldots,\ell(y_m,h(x_m)))\in[0,1]^m$. As $h$ ranges over $\mathcal{H}$, the vectors $a^h$ take at most $\tau_{\mathcal{H}}(m)$ distinct values, and each has Euclidean norm at most $\sqrt m$. Since the supremum in Step 2 is inside an absolute value, apply Massart's lemma (Lemma 7.3.3) to the symmetrized set $A:=\{a^h:h\in\mathcal{H}\}\cup\{-a^h:h\in\mathcal{H}\}$, which has at most $2\tau_{\mathcal{H}}(m)$ elements:
+*Step 3: Massart's lemma.* Condition on $S$. For each $h$, let
+
+$$a^h:=\big(\ell(y_1,h(x_1)),\ldots,\ell(y_m,h(x_m))\big)\in[0,1]^m$$
+
+be the vector of its losses on $S$. As $h$ ranges over $\mathcal{H}$, the vectors $a^h$ take at most $\tau_{\mathcal{H}}(m)$ distinct values, and each has Euclidean norm at most $\sqrt m$. Since the supremum in Step 2 is inside an absolute value, apply Massart's lemma (Lemma 7.3.3) to the symmetrized set
+
+$$A:=\{a^h:h\in\mathcal{H}\}\cup\{-a^h:h\in\mathcal{H}\},$$
+
+which has at most $2\tau_{\mathcal{H}}(m)$ elements:
 
 $$\mathbb{E}_\sigma\Big[\sup_{h\in\mathcal{H}}\Big|\frac1m\sum_{i=1}^m\sigma_i a_i^h\Big|\Big]=\mathbb{E}_\sigma\Big[\max_{a\in A}\frac1m\sum_{i=1}^m\sigma_i a_i\Big]\le\sqrt{\frac{2\log\big(2\tau_{\mathcal{H}}(m)\big)}{m}}.$$
 

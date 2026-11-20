@@ -532,7 +532,14 @@ and write $\mathcal{H}^{(1)}_{k,B_1,B_2}$ for the resulting class. Then for ever
 $$\widehat{\mathfrak{R}}_S\big(\mathcal{H}^{(1)}_{k,B_1,B_2}\big) \;\leq\; \frac{2B_1 B_2 R}{\sqrt{m}}.$$
 
 **Proof.** Fix the signs $\sigma$ and abbreviate $c(u) := \frac1m\sum_{i=1}^m \sigma_i\, g(u^\top x_i)$ for the correlation of a single hidden unit $u$. A hypothesis restricted to $S$ is the vector $\big(\sum_j w_j g(w_j^{(1)\top}x_i)\big)_{i=1}^m$, so
-$$\sup_{W,w} \frac1m \sum_{i=1}^m \sigma_i h_{W,w}(x_i) \;=\; \sup_{W,w} \sum_{j=1}^k w_j\, c\big(w_j^{(1)}\big) \;\leq\; \sup_{W,w} \sum_{j=1}^k |w_j|\, \big|c\big(w_j^{(1)}\big)\big| \;\leq\; \Big(\sum_{j=1}^k |w_j|\Big)\, \sup_{\|u\|_2 \leq B_1} |c(u)| \;\leq\; B_2 \sup_{\|u\|_2 \leq B_1} |c(u)|,$$
+$$
+\begin{aligned}
+\sup_{W,w} \frac1m \sum_{i=1}^m \sigma_i h_{W,w}(x_i) &= \sup_{W,w} \sum_{j=1}^k w_j\, c\big(w_j^{(1)}\big) \\
+&\leq \sup_{W,w} \sum_{j=1}^k |w_j|\, \big|c\big(w_j^{(1)}\big)\big| \\
+&\leq \Big(\sum_{j=1}^k |w_j|\Big)\, \sup_{\|u\|_2 \leq B_1} |c(u)| \\
+&\leq B_2 \sup_{\|u\|_2 \leq B_1} |c(u)|,
+\end{aligned}
+$$
 where the second inequality pulls the total $L_1$ mass out of the sum, and the third applies the constraint. The point is that the sup over $W$ of the individual correlations $\lvert c(w_j^{(1)})\rvert$ collapses to a single scalar supremum, exactly as in Theorem 10.5.1's proof — the row index $j$ labels identical constraint sets, so maximizing the weighted sum with an $L_1$ budget puts all mass on the single best hidden unit (a vertex of the $L_1$ ball). Taking $\mathbb{E}_\sigma$ and applying the same chain as in Theorem 10.5.1's proof (signed contraction (7.1) for the $1$-Lipschitz $g$ with $g(0)=0$, Cauchy-Schwarz, Jensen) gives
 $$\widehat{\mathfrak{R}}_S\big(\mathcal{H}^{(1)}_{k,B_1,B_2}\big) \;\leq\; B_2\, \mathbb{E}_\sigma\Big[\sup_{\|u\|_2 \leq B_1} \big|c(u)\big|\Big] \;\leq\; B_2\cdot\frac{2B_1 R\sqrt{m}}{m} \;=\; \frac{2B_1 B_2 R}{\sqrt{m}}.$$
 
@@ -551,13 +558,23 @@ Bounds of this type, in which the size of the weights rather than the size of th
 *(iii)* if $f$ is also convex and $0 < \alpha \leq 2/\beta$, the gradient step $G(u) := u - \alpha\nabla f(u)$ satisfies $\|G(u) - G(v)\|_2 \leq \|u - v\|_2$.
 
 **Proof.** *(i)* By the fundamental theorem of calculus along the segment from $u$ to $v$, Cauchy-Schwarz and smoothness,
-$$f(v) - f(u) - \nabla f(u)^\top(v-u) = \int_0^1\big(\nabla f(u + t(v-u)) - \nabla f(u)\big)^\top(v-u)\,dt \;\leq\; \int_0^1 \beta t\,\|v-u\|_2^2\,dt = \frac\beta2\|v-u\|_2^2.$$
+$$
+\begin{aligned}
+f(v) - f(u) - \nabla f(u)^\top(v-u) &= \int_0^1\big(\nabla f(u + t(v-u)) - \nabla f(u)\big)^\top(v-u)\,dt \\
+&\leq \int_0^1 \beta t\,\|v-u\|_2^2\,dt = \frac\beta2\|v-u\|_2^2.
+\end{aligned}
+$$
 *(ii)* Fix $u$ and let $\psi(y) := f(y) - \nabla f(u)^\top y$. It is convex and $\beta$-smooth with $\nabla\psi(u) = 0$, so $u$ minimizes $\psi$. Applying (i) to $\psi$ at the point $y - \frac1\beta\nabla\psi(y)$,
 $$\psi(u) \;\leq\; \psi\big(y - \tfrac1\beta\nabla\psi(y)\big) \;\leq\; \psi(y) - \tfrac1\beta\|\nabla\psi(y)\|_2^2 + \tfrac{1}{2\beta}\|\nabla\psi(y)\|_2^2 = \psi(y) - \tfrac{1}{2\beta}\|\nabla f(y) - \nabla f(u)\|_2^2.$$
 Written out, $f(u) \leq f(y) + \nabla f(u)^\top(u - y) - \frac1{2\beta}\|\nabla f(y) - \nabla f(u)\|_2^2$. Adding this inequality to the same one with $u$ and $y$ exchanged, and setting $y = v$, gives (ii).
 
 *(iii)* Expanding the square and using (ii),
-$$\|G(u)-G(v)\|_2^2 = \|u-v\|_2^2 - 2\alpha\big(\nabla f(u)-\nabla f(v)\big)^\top(u-v) + \alpha^2\|\nabla f(u)-\nabla f(v)\|_2^2 \;\leq\; \|u-v\|_2^2 - \alpha\Big(\frac2\beta - \alpha\Big)\|\nabla f(u)-\nabla f(v)\|_2^2,$$
+$$
+\begin{aligned}
+\|G(u)-G(v)\|_2^2 &= \|u-v\|_2^2 - 2\alpha\big(\nabla f(u)-\nabla f(v)\big)^\top(u-v) + \alpha^2\|\nabla f(u)-\nabla f(v)\|_2^2 \\
+&\leq \|u-v\|_2^2 - \alpha\Big(\frac2\beta - \alpha\Big)\|\nabla f(u)-\nabla f(v)\|_2^2,
+\end{aligned}
+$$
 and the last term is non-positive for $\alpha \leq 2/\beta$ $\square$
 
 All three facts are standard in convex optimization; see Chapter 2 of [Nesterov (2004)](https://doi.org/10.1007/978-1-4419-8853-9)<!-- cite: nesterov2004introductory | book | author={Nesterov, Yurii}; title={Introductory Lectures on Convex Optimization: A Basic Course}; publisher={Springer}; year={2004} -->.

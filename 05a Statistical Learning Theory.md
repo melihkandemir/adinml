@@ -198,7 +198,13 @@ $$
 $$
 
 *Step 2: bound the inner average for a fixed sequence.* Fix $j$, write $S_j = (x_1,\ldots,x_m)$, and let $v_1,\ldots,v_p$ be the elements of $C$ that **do not** appear in $S_j$. Since $S_j$ contains at most $m$ distinct elements and $|C| = 2m$, we have $p \geq m$. For any hypothesis $h$,
-$$R_{\mathcal{D}_i}(h) = \frac{1}{2m}\sum_{x \in C} \mathds{1}\big(h(x) \neq f_i(x)\big) \;\geq\; \frac{1}{2m}\sum_{r=1}^p \mathds{1}\big(h(v_r) \neq f_i(v_r)\big) \;\geq\; \frac{1}{2p}\sum_{r=1}^p \mathds{1}\big(h(v_r) \neq f_i(v_r)\big),$$
+$$
+\begin{aligned}
+R_{\mathcal{D}_i}(h) &= \frac{1}{2m}\sum_{x \in C} \mathds{1}\big(h(x) \neq f_i(x)\big) \\
+&\geq \frac{1}{2m}\sum_{r=1}^p \mathds{1}\big(h(v_r) \neq f_i(v_r)\big) \\
+&\geq \frac{1}{2p}\sum_{r=1}^p \mathds{1}\big(h(v_r) \neq f_i(v_r)\big),
+\end{aligned}
+$$
 the last step using $p \geq m$. Averaging over $i$ and exchanging the two finite averages,
 $$\frac1T\sum_{i} R_{\mathcal{D}_i}(A(S_j^i)) \;\geq\; \frac{1}{2}\cdot\frac1p\sum_{r=1}^p \underbrace{\frac1T\sum_{i} \mathds{1}\big(A(S_j^i)(v_r) \neq f_i(v_r)\big)}_{=:\ \Pi_r} \;\geq\; \frac12 \min_{r} \Pi_r .$$
 
@@ -580,7 +586,13 @@ R(h) \leq \widehat{R}_S(h) + \epsilon_{i(h)}\big(m, w(i(h))\delta\big) \\
 \text{simultaneously for every } h \in \mathcal{H}.
 \end{gathered}$$
 On that event, for any fixed $h \in \mathcal{H}_i$, the definition of $h_{SRM}$ as the minimizer of the right-hand side gives
-$$R(h_{SRM}) \leq \widehat{R}_S(h_{SRM}) + \epsilon_{i(h_{SRM})}\big(m,w(i(h_{SRM}))\delta\big) \leq \widehat{R}_S(h) + \epsilon_{i}\big(m,w(i)\delta\big) \leq R(h) + 2\,\epsilon_{i}\big(m,w(i)\delta\big),$$
+$$
+\begin{aligned}
+R(h_{SRM}) &\leq \widehat{R}_S(h_{SRM}) + \epsilon_{i(h_{SRM})}\big(m,w(i(h_{SRM}))\delta\big) \\
+&\leq \widehat{R}_S(h) + \epsilon_{i}\big(m,w(i)\delta\big) \\
+&\leq R(h) + 2\,\epsilon_{i}\big(m,w(i)\delta\big),
+\end{aligned}
+$$
 the last step using the uniform convergence of $\mathcal{H}_i$ once more, in the opposite direction. Since $\mathcal{H}_i$ has the uniform convergence property, $\epsilon_i(m,w(i)\delta) \to 0$ as $m \to \infty$ with $i,\delta$ fixed, so for every $\epsilon,\delta$ and every $h$ there is a finite
 $$m_{\mathcal{H}}^{NU}(\epsilon,\delta,h) := \min\big\{ m : 2\,\epsilon_{i(h)}\big(m, w(i(h))\delta\big) \leq \epsilon \big\}$$
 beyond which $R(A(S)) \leq R(h)+\epsilon$ holds with probability at least $1-\delta$. This is exactly Definition 6.4.10 $\square$

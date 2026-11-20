@@ -336,7 +336,11 @@ R(h) \leq \widehat{R}_S(h) + \frac{\log N}{\beta} + \frac{1}{\beta}\log\frac{1}{
 \text{for each fixed } \beta > 0.
 \end{gathered}$$
 
-Minimizing the right-hand side over $\beta$ (setting the derivative in $\beta$ to zero gives $\beta^* = \sqrt{8m(\log N + \log(1/\delta))}$, which depends only on $N$, $m$ and $\delta$ and can therefore be fixed before $S$ is seen) yields exactly
+Setting the derivative of the right-hand side in $\beta$ to zero gives the minimizer
+
+$$\beta^* = \sqrt{8m\big(\log N + \log(1/\delta)\big)}.$$
+
+It depends only on $N$, $m$ and $\delta$, so it can be fixed before $S$ is seen. Substituting $\beta^*$ yields exactly
 
 $$R(h) \leq \widehat{R}_S(h) + \sqrt{\frac{\log N + \log(1/\delta)}{2m}} = \widehat{R}_S(h) + \sqrt{\frac{\log|\mathcal{H}| + \log(1/\delta)}{2m}},$$
 
@@ -419,7 +423,12 @@ $$\frac1m\sum_{i=1}^m\big(f_N(x_i) - f(x_i)\big)^2 \;\leq\; \frac{A^2 B^2}{N}.$$
 **Proof.** Assume $A > 0$ (otherwise $f = 0$ and $f_N = 0$ works) and let $J_1,\ldots,J_N$ be i.i.d. indices with $P(J_k = j) = |w_j|/A$. Define the random function $f_N^{(J)} := \frac{A}{N}\sum_{k=1}^N u_{J_k}\psi_{J_k}$. For every fixed $x$,
 $$\mathbb{E}_J\big[f_N^{(J)}(x)\big] = \frac{A}{N}\sum_{k=1}^N\mathbb{E}\big[u_{J_k}\psi_{J_k}(x)\big] = A\sum_j \frac{|w_j|}{A}\,\mathrm{sign}(w_j)\psi_j(x) = \sum_j w_j\psi_j(x) = f(x),$$
 so $f_N^{(J)}$ is an unbiased estimator of $f$ at every point, and an average of $N$ i.i.d. terms $A\,u_{J_k}\psi_{J_k}(x)$. Its variance at each $x_i$ is therefore $\frac{1}{N}\mathrm{Var}\big[A\,u_{J_1}\psi_{J_1}(x_i)\big] \leq \frac{A^2}{N}\mathbb{E}\big[\psi_{J_1}(x_i)^2\big]$, and averaging over the sample,
-$$\mathbb{E}_J\Big[\frac1m\sum_i\big(f_N^{(J)}(x_i) - f(x_i)\big)^2\Big] \;=\; \frac{1}{m}\sum_i \mathrm{Var}_J\big[f_N^{(J)}(x_i)\big] \;\leq\; \frac{A^2}{N}\,\mathbb{E}_J\Big[\frac1m\sum_i \psi_{J_1}(x_i)^2\Big] \;\leq\; \frac{A^2B^2}{N}.$$
+$$
+\begin{aligned}
+\mathbb{E}_J\Big[\frac1m\sum_i\big(f_N^{(J)}(x_i) - f(x_i)\big)^2\Big] &= \frac{1}{m}\sum_i \mathrm{Var}_J\big[f_N^{(J)}(x_i)\big] \\
+&\leq \frac{A^2}{N}\,\mathbb{E}_J\Big[\frac1m\sum_i \psi_{J_1}(x_i)^2\Big] \;\leq\; \frac{A^2B^2}{N}.
+\end{aligned}
+$$
 A random variable cannot exceed its mean with probability one, so some realization $J$ satisfies the claimed bound $\square$
 
 In words: **any point of the convex hull ($A = 1$) is, on any finite sample, within $B/\sqrt N$ of some $N$-term average of base functions.** Sparsity costs only $1/\sqrt N$ — the same rate at which an i.i.d. average concentrates around its mean, which is exactly what the proof exploits. For a loss $L(f,y)$ that is convex and $\beta$-smooth in $f$ (its derivative in $f$ is $\beta$-Lipschitz), the excess empirical loss of $f_N$ over $f$ is, on average over $J$, at most $\frac{\beta}{2}$ times the squared distance above: the first-order term of the Taylor expansion averages to zero because $f_N^{(J)}$ is unbiased. So some $N$-sparse combination is within $\beta A^2B^2/(2N)$ of any point of the hull in empirical loss. Gradient boosting (Theorem 12.3.1 in Chapter 12) finds such a sparse combination greedily, at the same $O(1/N)$ rate.
@@ -433,7 +442,13 @@ $$\widehat{\mathfrak{R}}_S\big(\mathcal{F}_{A,L_1}(\Psi)\big) \;=\; A\cdot\wideh
 
 **Proof.** "$\geq$": every singleton combination $A\cdot\psi$, $\psi \in \Psi$, lies in $\mathcal{F}_{A,L_1}(\Psi)$, so for every realization of the signs the supremum over $\mathcal{F}_{A,L_1}(\Psi)$ is at least $\sup_{\psi\in\Psi}\frac{A}{m}\sum_i\sigma_i\psi(x_i)$; taking the expectation over $\sigma$ gives $\widehat{\mathfrak{R}}_S(\mathcal{F}_{A,L_1}(\Psi)) \geq A\,\widehat{\mathfrak{R}}_S(\Psi)$.
 "$\leq$": fix a realization of the signs $\sigma$ and a combination $g = \sum_j w_j\psi_j$ with $\sum_j|w_j| \leq A$. Then
-$$\Big|\frac1m\sum_i \sigma_i g(x_i)\Big| = \Big|\sum_j w_j\,\frac1m\sum_i\sigma_i\psi_j(x_i)\Big| \leq \sum_j |w_j|\,\Big|\frac1m\sum_i\sigma_i\psi_j(x_i)\Big| \leq \Big(\sum_j |w_j|\Big)\sup_{\psi\in\Psi}\Big|\frac1m\sum_i\sigma_i\psi(x_i)\Big|,$$
+$$
+\begin{aligned}
+\Big|\frac1m\sum_i \sigma_i g(x_i)\Big| &= \Big|\sum_j w_j\,\frac1m\sum_i\sigma_i\psi_j(x_i)\Big| \\
+&\leq \sum_j |w_j|\,\Big|\frac1m\sum_i\sigma_i\psi_j(x_i)\Big| \\
+&\leq \Big(\sum_j |w_j|\Big)\sup_{\psi\in\Psi}\Big|\frac1m\sum_i\sigma_i\psi(x_i)\Big|,
+\end{aligned}
+$$
 and since $\Psi$ is symmetric, $\sup_{\psi\in\Psi}\big|\frac1m\sum_i\sigma_i\psi(x_i)\big| = \sup_{\psi\in\Psi}\frac1m\sum_i\sigma_i\psi(x_i)$: the absolute value of a negative correlation is attained, with positive sign, by $-\psi \in \Psi$. Taking the supremum over $g$ and then the expectation over $\sigma$ gives $\widehat{\mathfrak{R}}_S(\mathcal{F}_{A,L_1}(\Psi)) \leq A\,\widehat{\mathfrak{R}}_S(\Psi)$ $\square$
 
 Note that the number of terms $k$ and the individual weights never appear in the bound — only the total $L_1$ mass $A$ does. Since $\mathrm{conv}(\Psi) \subseteq \mathcal{F}_{1,L_1}(\Psi)$, the upper bound in Theorem 12.2.6's "convexification is free" is, for a symmetric base class, the $A=1$ instance of this statement, and the two proofs are the same argument. What the $L_1$ form adds is the **norm constraint** reading: capacity is controlled by the *budget* $A$, not by the number of parameters $k$ — the same moral as Theorem 7.3.6 for $L_2$-balls, and the same mechanism we will exploit for the output layer of a two-layer network in Chapter 10 and for gradient boosting in Chapter 12.
@@ -459,7 +474,13 @@ $$(z_1,\ldots,z_{i-1},\ z_i,\ z_{i+1},\ldots,z_m,\ z)\ \mapsto\ (z_1,\ldots,z_{i
 All $m+1$ coordinates being i.i.d. from $\mathcal{D}$, the law of the tuple is invariant under $T_i$, so for any function $G$ of the tuple, $\mathbb{E}[G] = \mathbb{E}[G\circ T_i]$. Applying this to $G := \phi(A(S),z)$ (which depends on the first $m$ coordinates only, through $A$) gives
 $$\mathbb{E}_{S,z}\big[\phi(A(S),z)\big] \;=\; \mathbb{E}_{S,z}\big[\phi\big(A(S^{(i)}),\,z_i\big)\big],$$
 where $S^{(i)}$ is $S$ with its $i$-th element replaced by $z$. Now $S^{(i)}$ and $S$ differ in exactly one element, so by uniform stability $\phi(A(S^{(i)}),z_i) \leq \phi(A(S),z_i) + \epsilon$ pointwise. Averaging over $i$,
-$$\mathbb{E}_S\big[R(A(S))\big] = \frac1m\sum_{i=1}^m \mathbb{E}_{S,z}\big[\phi\big(A(S^{(i)}),z_i\big)\big] \;\leq\; \frac1m\sum_{i=1}^m\mathbb{E}_{S,z}\big[\phi(A(S),z_i) + \epsilon\big] = \mathbb{E}_S\big[\widehat{R}_S(A(S))\big] + \epsilon. \qquad\square$$
+$$
+\begin{aligned}
+\mathbb{E}_S\big[R(A(S))\big] &= \frac1m\sum_{i=1}^m \mathbb{E}_{S,z}\big[\phi\big(A(S^{(i)}),z_i\big)\big] \\
+&\leq \frac1m\sum_{i=1}^m\mathbb{E}_{S,z}\big[\phi(A(S),z_i) + \epsilon\big] \\
+&= \mathbb{E}_S\big[\widehat{R}_S(A(S))\big] + \epsilon. \qquad\square
+\end{aligned}
+$$
 
 The proof is a pure **ghost-sample swap**: the fresh example $z$ and the training example $z_i$ are statistically exchangeable, so the algorithm's loss on the fresh example can be evaluated as its loss on the replaced example — where stability bridges the two runs. No complexity measure of any class appears anywhere; the only quantity controlling generalization is the one-sample sensitivity $\epsilon$.
 
@@ -512,7 +533,10 @@ since $g \leq 1$ makes $(L-1)\,g \leq (L-1)^+$ pointwise (on $\{L \leq 1\}$ the 
 *(i)* $P(W) + Q(W^c) \;\geq\; 1 - \mathrm{TV}(P,Q)$.
 
 *(ii)* For product distributions of $m$ i.i.d. draws, with $\chi^2(P\|Q) := \mathbb{E}_Q\big[\big(\tfrac{dP}{dQ}-1\big)^2\big]$ the **chi-squared divergence**,
-$$\mathrm{TV}\big(P^{\otimes m},Q^{\otimes m}\big) \;\leq\; \sqrt{\chi^2\big(P^{\otimes m}\|Q^{\otimes m}\big)} \;\leq\; \sqrt{2m\,\chi^2(P\|Q)} \qquad \text{whenever } m\,\chi^2(P\|Q) \leq 1.$$
+$$\begin{gathered}
+\mathrm{TV}\big(P^{\otimes m},Q^{\otimes m}\big) \;\leq\; \sqrt{\chi^2\big(P^{\otimes m}\|Q^{\otimes m}\big)} \;\leq\; \sqrt{2m\,\chi^2(P\|Q)} \\
+\text{whenever } m\,\chi^2(P\|Q) \leq 1.
+\end{gathered}$$
 
 *(iii)* (Bretagnolle-Huber) With $\mathrm{KL}(P\|Q) := \mathbb{E}_P\big[\log\frac{dP}{dQ}\big]$ the Kullback-Leibler divergence,
 $$P(W) + Q(W^c) \;\geq\; \tfrac12\,e^{-\mathrm{KL}(P\|Q)}, \qquad \mathrm{KL}\big(P^{\otimes m}\big\|Q^{\otimes m}\big) = m\,\mathrm{KL}(P\|Q).$$
@@ -526,7 +550,12 @@ $$1 + \chi^2\big(P^{\otimes m}\big\|Q^{\otimes m}\big) = \mathbb{E}_{Q^{\otimes 
 and $e^x - 1 \leq 2x$ on $[0,1]$ gives $\chi^2(P^{\otimes m}\|Q^{\otimes m}) \leq 2m\,\chi^2(P\|Q)$.
 
 *(iii)* Let $p,q$ be densities of $P,Q$ with respect to a common reference measure $\mu$ (for instance $\mu = P + Q$). Then $P(W) + Q(W^c) = \int_W p\,d\mu + \int_{W^c} q\,d\mu \geq \int \min(p,q)\,d\mu$. By Cauchy-Schwarz, and since $\int\max(p,q)\,d\mu = \int(p+q)\,d\mu - \int\min(p,q)\,d\mu \leq 2$,
-$$\Big(\int\sqrt{pq}\,d\mu\Big)^2 = \Big(\int\sqrt{\min(p,q)\max(p,q)}\,d\mu\Big)^2 \;\leq\; \int\min(p,q)\,d\mu\cdot\int\max(p,q)\,d\mu \;\leq\; 2\int\min(p,q)\,d\mu.$$
+$$
+\begin{aligned}
+\Big(\int\sqrt{pq}\,d\mu\Big)^2 &= \Big(\int\sqrt{\min(p,q)\max(p,q)}\,d\mu\Big)^2 \\
+&\leq \int\min(p,q)\,d\mu\cdot\int\max(p,q)\,d\mu \;\leq\; 2\int\min(p,q)\,d\mu.
+\end{aligned}
+$$
 By Jensen's inequality for the convex function $\exp$,
 $$\begin{aligned}
 \int\sqrt{pq}\,d\mu &\;\geq\; \int_{\{p>0\}} p\,\exp\Big(-\tfrac12\log\frac{p}{q}\Big)d\mu = \mathbb{E}_P\Big[\exp\Big(-\tfrac12\log\frac{dP}{dQ}\Big)\Big] \\
@@ -577,7 +606,10 @@ the KL divergence of the joint law of $(j,S)$ from the product of its marginals;
 **Theorem 7.9.4 (Fano's inequality, generalized).** Let $\mathcal{P} = \{\mathcal{D}_1,\ldots,\mathcal{D}_N\}$ be a finite family of distributions, $Q$ a quality measure as in Definition 7.9.1, $\epsilon > 0$, and
 $$N_\epsilon := \sup_h\ \big|\{k : Q(h,\mathcal{D}_k) < \epsilon\}\big|,$$
 the largest number of distributions a single hypothesis can serve at quality $\epsilon$. If $N_\epsilon < N$, then every (possibly randomized) algorithm $A$ satisfies
-$$\frac1N\sum_{j=1}^N P_{S\sim\mathcal{D}_j^m}\big(Q(A(S),\mathcal{D}_j) < \epsilon\big) \;\leq\; \frac{I(j,S) + \log 2}{\log(N/N_\epsilon)}, \qquad I(j,S) \;\leq\; \frac{m}{N^2}\sum_{j,k=1}^N\mathrm{KL}(\mathcal{D}_j\|\mathcal{D}_k).$$
+$$\begin{gathered}
+\frac1N\sum_{j=1}^N P_{S\sim\mathcal{D}_j^m}\big(Q(A(S),\mathcal{D}_j) < \epsilon\big) \;\leq\; \frac{I(j,S) + \log 2}{\log(N/N_\epsilon)}, \\
+I(j,S) \;\leq\; \frac{m}{N^2}\sum_{j,k=1}^N\mathrm{KL}(\mathcal{D}_j\|\mathcal{D}_k).
+\end{gathered}$$
 
 **Proof.** *Step 1: data processing onto an event.* For distributions $P \ll Q$ and any event $F$ with $0 < P(F) < 1$, with $\mathrm{kl}$ the binary KL divergence of Theorem 5.6.10,
 $$\mathrm{KL}(P\|Q) \;\geq\; \mathrm{kl}\big(P(F)\,\big\|\,Q(F)\big).$$

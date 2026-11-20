@@ -41,7 +41,12 @@ $$\prod_{i=1}^m P_i^{y_i} (1-P_i)^{1-y_i}.$$
 
 Maximizing this product is mathematically equivalent to maximizing its logarithm, since $\log$ is strictly increasing. The logarithm is also what makes the objective usable, for two reasons. First, *numerical precision*: the product of many probabilities, each below $1$, shrinks towards zero exponentially fast in $m$ — a million data points of probability around $0.5$ multiply to about $10^{-301030}$, far below what any computer can represent — and once a product underflows, comparing candidate parameters becomes impossible. The logarithm converts the product into a *sum*, which grows linearly in $m$ instead of shrinking exponentially, and stays within representable range. Second, *optimization*: sums split over data points, so the objective and its gradient decompose into per-point contributions — a structure gradient descent (and the mini-batching of Chapter 10) relies on — and the exponent in each factor, $P_i^{y_i}(1-P_i)^{1-y_i}$, comes down from the power to a multiplier, where $P_i = g(w^\top x_i)$ and $g$ itself already involves an exponential. Hence, we can define the **binary cross-entropy loss** as the negated log-probability of the data set:
 
-$$\mathcal{L}_{CE}(w) = -\sum_{i=1}^m \log g(w^\top x_i)^{y_i} (1-g(w^\top x_i))^{1-y_i} = -\sum_{i=1}^m \Big[ y_i \log g(w^\top x_i) + (1-y_i) \log(1-g(w^\top x_i)) \Big].$$
+$$
+\begin{aligned}
+\mathcal{L}_{CE}(w) &= -\sum_{i=1}^m \log g(w^\top x_i)^{y_i} (1-g(w^\top x_i))^{1-y_i} \\
+&= -\sum_{i=1}^m \Big[ y_i \log g(w^\top x_i) + (1-y_i) \log(1-g(w^\top x_i)) \Big].
+\end{aligned}
+$$
 
 ## Extension to multi-class classification
 

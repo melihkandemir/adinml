@@ -207,7 +207,27 @@ def split_chunks(text: str):
             in_math = not in_math
     if buf:
         chunks.append("\n".join(buf))
-    return chunks
+    return merge_display_continuations(chunks)
+
+
+# Text that continues a sentence after a display equation (", where ...",
+# "and ...", "so that ...", "$x$ is ...") must stay in the same LaTeX
+# paragraph; a blank line in the Markdown would otherwise start a new,
+# indented paragraph. A chunk starting with a capital letter, a heading,
+# a list item, an emphasis marker or another display starts a genuinely
+# new paragraph and is left alone.
+CONTINUATION_RE = re.compile(r'^(?:[a-z]|[,.;:)]|\$(?!\$))')
+
+
+def merge_display_continuations(chunks):
+    out = []
+    for chunk in chunks:
+        if (out and out[-1].rstrip().endswith("$$")
+                and CONTINUATION_RE.match(chunk.lstrip())):
+            out[-1] = out[-1].rstrip() + "\n" + chunk.lstrip()
+        else:
+            out.append(chunk)
+    return out
 
 
 def is_boundary(chunk: str) -> bool:
@@ -258,7 +278,8 @@ def build_env_latex(kw: str, title: str, qualifier: str, content_raw: str) -> st
     if kw == "Proof":
         latex_qualifier = latex_escape_plain(qualifier)
         label = "Proof (%s)." % latex_qualifier if qualifier else "Proof."
-        return "\\begin{proof}[\\noindent\\textbf{%s}]\n%s\n\\end{proof}" % (label, latex_content)
+        return ("\\begin{proofbox}\\begin{proof}[\\noindent\\textbf{%s}]\n%s\n"
+                "\\end{proof}\\end{proofbox}" % (label, latex_content))
     raise AssertionError(kw)
 
 

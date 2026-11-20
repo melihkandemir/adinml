@@ -30,7 +30,12 @@ $$\begin{gathered}
 \end{gathered}$$
 
 ***Proof.*** The first claim is linearity of expectation. For the second, independence makes all cross-covariances vanish, so
-$$\mathrm{Var}\Big[\tfrac1T\sum_t h_{S_t}(x)\Big] = \tfrac{1}{T^2}\sum_{t=1}^T \mathrm{Var}[h_{S_t}(x)] + \tfrac{1}{T^2}\sum_{t \neq t'} \underbrace{\mathrm{Cov}[h_{S_t}(x), h_{S_{t'}}(x)]}_{=\,0} = \tfrac{1}{T^2}\cdot T\,\mathrm{Var}_S[h_S(x)]. \qquad\square$$
+$$
+\begin{aligned}
+\mathrm{Var}\Big[\tfrac1T\sum_t h_{S_t}(x)\Big] &= \tfrac{1}{T^2}\sum_{t=1}^T \mathrm{Var}[h_{S_t}(x)] + \tfrac{1}{T^2}\sum_{t \neq t'} \underbrace{\mathrm{Cov}[h_{S_t}(x), h_{S_{t'}}(x)]}_{=\,0} \\
+&= \tfrac{1}{T^2}\cdot T\,\mathrm{Var}_S[h_S(x)]. \qquad\square
+\end{aligned}
+$$
 
 In the vocabulary of Chapter 6's bias-variance decomposition: the $\text{Bias}^2$ term is untouched and the $\text{Variance}$ term is divided by $T$. Letting $T\to\infty$, the weak law of large numbers (Theorem 5.6.3) gives $h_{S_1,\ldots,S_T}(x) \to \bar h(x) := \mathbb{E}_S[h_S(x)]$, the **average predictor** of Chapter 6.
 

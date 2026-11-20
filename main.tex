@@ -29,6 +29,9 @@
 \setkeys{Gin}{width=0.85\textwidth} %Size of figures
 \setlength{\cftbeforechapskip}{3pt} %space between items in toc
 \setlength{\parindent}{0.5cm} % Idk
+% Let TeX stretch interword spacing a little more on hard-to-break lines
+% (long inline formulas, citations) instead of pushing them into the margin.
+\setlength{\emergencystretch}{3em}
 \input{theorems.tex} % Theorems styles and colors
 \input{syntax_highlighting.tex} % Colored Python code blocks (pandoc/pygments)
 \usepackage[english]{babel} %Language
