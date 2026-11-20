@@ -32,6 +32,10 @@
 % Let TeX stretch interword spacing a little more on hard-to-break lines
 % (long inline formulas, citations) instead of pushing them into the margin.
 \setlength{\emergencystretch}{3em}
+% Do not stretch vertical space to make every page end at the same height:
+% with flush bottoms, a theorem box or display pushed to the next page left
+% huge gaps around the equations of the previous page.
+\raggedbottom
 \input{theorems.tex} % Theorems styles and colors
 \input{syntax_highlighting.tex} % Colored Python code blocks (pandoc/pygments)
 \usepackage[english]{babel} %Language

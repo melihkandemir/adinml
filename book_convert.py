@@ -210,20 +210,31 @@ def split_chunks(text: str):
     return merge_display_continuations(chunks)
 
 
-# Text that continues a sentence after a display equation (", where ...",
-# "and ...", "so that ...", "$x$ is ...") must stay in the same LaTeX
-# paragraph; a blank line in the Markdown would otherwise start a new,
-# indented paragraph. A chunk starting with a capital letter, a heading,
-# a list item, an emphasis marker or another display starts a genuinely
-# new paragraph and is left alone.
-CONTINUATION_RE = re.compile(r'^(?:[a-z]|[,.;:)]|\$(?!\$))')
+# Text right after a display equation continues the paragraph the display
+# belongs to (", where ...", "Writing ... turns it into ...", "so that ..."),
+# so it must not start a new, indented LaTeX paragraph -- the usual textbook
+# convention. The Markdown cannot distinguish a continuation from a fresh
+# paragraph (both follow a blank line), so every plain-text chunk after a
+# display is joined to it. Structural chunks still start fresh: headings,
+# "---" box ends, Theorem/Proof/... markers, lists, figures, code, tables,
+# block quotes and further displays.
+STRUCTURAL_START_RE = re.compile(
+    r'^(?:#|---|```|!\[|\$\$|[*+-]\s|\d+[.)]\s|\||>|<)'
+)
+
+
+def is_continuation(chunk: str) -> bool:
+    stripped = chunk.lstrip()
+    if not stripped or STRUCTURAL_START_RE.match(stripped):
+        return False
+    return not ENV_RE.match(stripped)
 
 
 def merge_display_continuations(chunks):
     out = []
     for chunk in chunks:
         if (out and out[-1].rstrip().endswith("$$")
-                and CONTINUATION_RE.match(chunk.lstrip())):
+                and is_continuation(chunk)):
             out[-1] = out[-1].rstrip() + "\n" + chunk.lstrip()
         else:
             out.append(chunk)
