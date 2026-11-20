@@ -275,9 +275,15 @@ Balancing $\epsilon \propto 1/\sqrt m$ against the second term yields an overall
 
 # PAC-Bayes Bounds
 
-The bounds so far all fix a hypothesis class $\mathcal{H}$ first, and then ask for a guarantee that holds *uniformly*, for every $h \in \mathcal{H}$ at once — this is what makes it valid to then plug in whichever $h$ our learning algorithm happens to output. **PAC-Bayes bounds** [McAllester (1999)](https://doi.org/10.1145/307400.307435)<!-- cite: mcallester1999pacbayesian | inproceedings | author={McAllester, David A.}; title={PAC-Bayesian Model Averaging}; booktitle={Proceedings of the 12th Annual Conference on Computational Learning Theory (COLT)}; year={1999}; pages={164--170} --> relax this: instead of a single hypothesis, they bound the risk of a whole *distribution* over hypotheses, and let that distribution depend on the data.
+Nonuniform learning in Chapter 6 already gave up on a single penalty shared by all hypotheses. The Structural Risk Minimization (SRM) rule spread the failure probability $\delta$ over a countable class with weights $w'(h)$ summing to at most one. Theorem 6.4.12 then certified each hypothesis with its own penalty. With one hypothesis per subclass and Hoeffding's inequality, with probability at least $1-\delta$, simultaneously for every $h \in \mathcal{H}$,
 
-**Setup.** Fix a **prior** distribution $q$ over $\mathcal{H}$, chosen *before* seeing $S$ (it may encode domain knowledge, or simply be uniform/uninformative). After seeing $S$, we are free to choose any **posterior** distribution $\rho$ over $\mathcal{H}$ — informed by the data in any way whatsoever, including via an algorithm's output — and consider the *randomized* predictor that draws a fresh $h \sim \rho$ at prediction time. Define $R(\rho) := \mathbb{E}_{h \sim \rho}[R(h)]$ and $\widehat{R}_S(\rho) := \mathbb{E}_{h\sim\rho}[\widehat{R}_S(h)]$. The bound below is governed by the **Kullback-Leibler (KL) divergence** between the two,
+$$R(h) \leq \widehat{R}_S(h) + \sqrt{\frac{\log(1/w'(h)) + \log(2/\delta)}{2m}}.$$
+
+A weight function that sums to one is a probability distribution over $\mathcal{H}$, fixed before the data are seen. It acts as a *prior*: hypotheses it favours pay a small penalty, and hypotheses it neglects pay a large one. Read this way, SRM has two limits. First, the union bound behind Theorem 6.4.12 needs a countable $\mathcal{H}$. On a continuum of hypotheses, such as the weight vectors of a linear model, a continuous distribution gives every single hypothesis probability zero, so the penalty $\log(1/w'(h))$ is infinite. Second, SRM certifies one hypothesis at a time, whereas a learner may prefer to report a whole distribution of plausible hypotheses, as a Bayesian posterior does.
+
+**PAC-Bayes bounds** [McAllester (1999)](https://doi.org/10.1145/307400.307435)<!-- cite: mcallester1999pacbayesian | inproceedings | author={McAllester, David A.}; title={PAC-Bayesian Model Averaging}; booktitle={Proceedings of the 12th Annual Conference on Computational Learning Theory (COLT)}; year={1999}; pages={164--170} --> remove both limits. They keep the prior, now called $q$. The learner outputs a data-dependent distribution $\rho$ over $\mathcal{H}$, and the bound controls the risk averaged under $\rho$. The penalty $\log(1/w'(h))$ becomes the Kullback-Leibler divergence $\mathrm{KL}(\rho\|q)$, defined below. It measures how far the data have moved the learner away from the prior. This penalty stays finite on uncountable classes, for instance when $q$ and $\rho$ are two Gaussian distributions over the weights of a linear model. When $\rho$ puts all its mass on one hypothesis $h$ of a countable class, it reduces to $\log(1/q(h))$, the SRM penalty. PAC-Bayes is therefore nonuniform learning in which the union bound over hypotheses is replaced by a change of measure from $q$ to $\rho$ (Step 3 of the proof below).
+
+**Setup.** Fix a **prior** distribution $q$ over $\mathcal{H}$, chosen *before* seeing $S$, the counterpart of the SRM weights $w'$. It may encode domain knowledge, or simply be uniform or uninformative. After seeing $S$, we are free to choose any **posterior** distribution $\rho$ over $\mathcal{H}$ — informed by the data in any way whatsoever, including via an algorithm's output — and consider the *randomized* predictor that draws a fresh $h \sim \rho$ at prediction time. Define $R(\rho) := \mathbb{E}_{h \sim \rho}[R(h)]$ and $\widehat{R}_S(\rho) := \mathbb{E}_{h\sim\rho}[\widehat{R}_S(h)]$. The bound below is governed by the **Kullback-Leibler (KL) divergence** between the two,
 
 $$\mathrm{KL}(\rho\|q) := \mathbb{E}_{h\sim\rho}\Big[\log\frac{\rho(h)}{q(h)}\Big],$$
 
@@ -327,10 +333,10 @@ Take $\mathcal{H} = \{h_1,\ldots,h_N\}$ finite, the **uniform prior** $q(h_j) = 
 
 $$\begin{gathered}
 R(h) \leq \widehat{R}_S(h) + \frac{\log N}{\beta} + \frac{1}{\beta}\log\frac{1}{\delta} + \frac{\beta}{8m}, \\
-\forall \beta > 0.
+\text{for each fixed } \beta > 0.
 \end{gathered}$$
 
-Minimizing the right-hand side over $\beta$ (setting the derivative in $\beta$ to zero gives $\beta^* = \sqrt{8m(\log N + \log(1/\delta))}$) yields exactly
+Minimizing the right-hand side over $\beta$ (setting the derivative in $\beta$ to zero gives $\beta^* = \sqrt{8m(\log N + \log(1/\delta))}$, which depends only on $N$, $m$ and $\delta$ and can therefore be fixed before $S$ is seen) yields exactly
 
 $$R(h) \leq \widehat{R}_S(h) + \sqrt{\frac{\log N + \log(1/\delta)}{2m}} = \widehat{R}_S(h) + \sqrt{\frac{\log|\mathcal{H}| + \log(1/\delta)}{2m}},$$
 
