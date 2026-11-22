@@ -222,7 +222,7 @@ where $\eta=(\pi,\theta)$ ranges over $\pi_c>0$, $\sum_{c=1}^C\pi_c=1$, and $\th
 
 ---
 
-The following proposition shows that the reparameterization is not merely a convenient rewriting: it exhausts the affine class.
+The following proposition shows that the reparameterization exhausts the affine class.
 
 **Proposition 8.6.2 (The Naive Bayes and affine classes coincide).** $\mathcal{H}_{\mathrm{NB}}=\mathcal{H}_{\mathrm{aff}}$.
 

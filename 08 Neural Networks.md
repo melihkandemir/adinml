@@ -23,7 +23,7 @@ The first-generation activation function was the Heaviside step function:
 
 $$g(z) = \begin{cases} 1 & \text{if } z \geq 0, \\ 0 & \text{otherwise.} \end{cases}$$
 
-This construction, called a **perceptron**, is not popular nowadays because the step function gives gradient-based training nothing to follow. The reason is not merely the single point $z=0$; we return to this distinction after the figure below. Modern neural networks use activation functions with a usable derivative over most of their domain, such as:
+This construction, called a **perceptron**, is not popular nowadays because the step function gives gradient-based training nothing to follow. The reason lies in the flat regions of the step function, as we show after the figure below. Modern neural networks use activation functions with a usable derivative over most of their domain, such as:
 
 - Sigmoid function: $g(z) = \frac{1}{1+e^{-z}}$,
 - Hyperbolic tangent function: $g(z) = \tanh(z)$,

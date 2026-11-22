@@ -77,7 +77,7 @@ $$\forall h \in \mathcal{H}, |R(h) - \widehat{R}_S(h)| \leq \epsilon.$$
 
 ---
 
-In words, on an $\epsilon$-representative sample, training error is a faithful proxy for true error, simultaneously for *every* hypothesis in $\mathcal{H}$ — not just the one a particular algorithm happens to output.
+In words, on an $\epsilon$-representative sample, training error is a faithful proxy for true error, simultaneously for *every* hypothesis in $\mathcal{H}$ — including the one a particular algorithm happens to output.
 
 ---
 
@@ -135,7 +135,7 @@ $$R^*_{\mathcal{D}} := \inf_{h': \mathcal{X} \rightarrow \mathcal{Y}} R(h').$$
 
 ---
 
-The infimum above ranges over all measurable functions, not merely over the best predictor inside some hypothesis class $\mathcal{H}$. A predictor $h^*$ that achieves the Bayes error is called a **Bayes (optimal) predictor**. For binary classification with $\mathcal{Y} = \{0,1\}$, the Bayes predictor is
+The infimum above ranges over all measurable functions, a larger set than any hypothesis class $\mathcal{H}$. A predictor $h^*$ that achieves the Bayes error is called a **Bayes (optimal) predictor**. For binary classification with $\mathcal{Y} = \{0,1\}$, the Bayes predictor is
 
 $$h^*(x) = \arg \max_{y \in \{0,1\}} P(y \mid x),$$
 
