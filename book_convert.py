@@ -111,7 +111,19 @@ CITE_FIELD_RE = re.compile(r'(\w+)\s*=\s*\{([^}]*)\}')
 CITE_LINK_RE = re.compile(
     r'\[[^\]\n]+\]\([^\n]*?\)<!--\s*cite:\s*([\w:-]+)\s*\|[^\n]*?-->'
 )
-QED_RE = re.compile(r'(\$\\square\$|\$\\blacksquare\$|[\u220E\u25A0\u25AA\u25FC])')
+# A QED glyph can close a proof in two shapes: as its own inline math group
+# ("... claim $\square$"), or at the end of a display, possibly before the
+# closing environment and the "$$" ("... \qquad\square$$", or
+# "... \square \end{aligned}$$"). The display form must be recognized too:
+# otherwise the proof box runs past the QED and swallows the paragraphs that
+# follow it.
+QED_INLINE_RE = re.compile(
+    r'\$\s*\\(?:square|blacksquare)\s*\$|[\u220E\u25A0\u25AA\u25FC]'
+)
+QED_DISPLAY_RE = re.compile(
+    r'\\(?:square|blacksquare)(?=\s*(?:\\end\{[A-Za-z*]+\}\s*)?\$\$)'
+)
+DISPLAY_CLOSE_RE = re.compile(r'\s*(?:\\end\{[A-Za-z*]+\}\s*)?\$\$')
 HEADING_RE = re.compile(r'^(#{1,6})\s')
 ABBREV_TIE_RE = re.compile(r'\b(e\.g\.|i\.e\.|cf\.|etc\.)~(?=\\\()')
 
@@ -258,7 +270,9 @@ def extract_title_and_qualifier(kw: str, middle: str):
         q = re.sub(r'\.$', '', q).strip()
         if q.startswith('(') and q.endswith(')'):
             q = q[1:-1].strip()
-        elif re.fullmatch(r'[\d.\sa-zA-Z:]*', q):
+        elif re.fullmatch(r'[\d.\s:]*', q):
+            # Only a hand-assigned proof number ("Proof 5.6.9."), not a
+            # descriptive qualifier such as "sketch" -- that word matters.
             q = ""
         qualifier = q
     return title, qualifier
@@ -282,7 +296,12 @@ def build_env_latex(kw: str, title: str, qualifier: str, content_raw: str) -> st
         return "\\rmkb{\n%s\n}" % latex_content
     if kw == "Proof":
         latex_qualifier = latex_escape_plain(qualifier)
-        label = "Proof (%s)." % latex_qualifier if qualifier else "Proof."
+        if qualifier.lower() in ("sketch", "idea", "outline"):
+            label = "Proof %s." % latex_qualifier
+        elif qualifier:
+            label = "Proof (%s)." % latex_qualifier
+        else:
+            label = "Proof."
         return ("\\begin{proofbox}\\begin{proof}[\\noindent\\textbf{%s}]\n%s\n"
                 "\\end{proof}\\end{proofbox}" % (label, latex_content))
     raise AssertionError(kw)
@@ -319,18 +338,36 @@ def convert_env_blocks(chunks):
         content_parts = []
         j = i + 1
 
+        def split_at_qed(text):
+            """Return (body, remainder) when text contains a proof-ending QED
+            glyph, else None. An inline QED is dropped together with its math
+            delimiters; a QED inside a display is dropped alone, but the
+            display's closing environment and "$$" stay in the body, so the
+            proof still ends with well-formed math."""
+            inline = QED_INLINE_RE.search(text)
+            display = QED_DISPLAY_RE.search(text)
+            if display and (not inline or display.start() < inline.start()):
+                close = DISPLAY_CLOSE_RE.match(text, display.end())
+                assert close is not None
+                end = close.end()
+                body = text[:display.start()] + text[display.end():end]
+                return body, text[end:]
+            if inline:
+                return text[:inline.start()], text[inline.end():]
+            return None
+
         def consume(text):
             """For a Proof, stop right at the first QED glyph and push
             whatever follows it back as a separate, ordinary chunk."""
             if kw != "Proof":
                 content_parts.append(text)
                 return False
-            qm = QED_RE.search(text)
-            if not qm:
+            split = split_at_qed(text)
+            if split is None:
                 content_parts.append(text)
                 return False
-            content_parts.append(text[:qm.start()])
-            remainder = text[qm.end():]
+            body, remainder = split
+            content_parts.append(body)
             return True, remainder
 
         done = False
