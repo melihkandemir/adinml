@@ -14,10 +14,13 @@
     \draw[dashed, thick, mondrianblue] (0,4.5) -- (7,3.5);
     \draw[dashed, thick, mondrianred]  (0,2.5) -- (7,1.5);
 
-    % Margin width indicator (endpoints sit exactly on the two margin lines at x=3.5);
-    % the label sits above the decision boundary (which crosses this arrow at y=3.0),
-    % not on top of it.
-    \draw[<->] (3.5,4.0) -- (3.5,2.0) node[pos=0.25, right, xshift=2pt] {\small margin};
+    % Margin width indicator, orthogonal to the hyperplane: the lines have
+    % direction (7,-1), so the normal is (1,7). From the boundary point (3.5,3.0)
+    % the offset (0.14,0.98) reaches each margin line exactly (vertical gap 1).
+    % The label sits left of the arrow, between the boundary and the lower margin.
+    \draw[<->] (3.64,3.98) -- (3.36,2.02) node[pos=0.7, left, xshift=-2pt] {\small margin};
+    % Right-angle mark where the indicator crosses the decision boundary
+    \draw[thin] (3.6485,2.9788) -- (3.6697,3.1273) -- (3.5212,3.1485);
 
     % Class +1 points (blue circles), above the upper margin
     \node[classA] at (0.5,4.9) {};
